@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f1f44">
+<title>Move Today</title>
+<style>
+  :root{
+    --bg:#0f1f44; --card:#17294f; --card2:#22386a;
+    --text:#f2ead9; --muted:#a99f8a;
+    --gym:#c9a24a; --yoga:#b07a4e; --rest:#7e8c5a;
+    --gold:#d4af5a;
+    --line:#2a3a52;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    min-height:100%;}
+  body{padding:24px 18px 48px;max-width:560px;margin:0 auto;}
+  h1{font-size:26px;margin:4px 0 2px;font-weight:700;}
+  .sub{color:var(--muted);font-size:15px;margin:0 0 22px;}
+  .screen{display:none;animation:fade .25s ease;}
+  .screen.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  .choice{position:relative;display:flex;align-items:center;gap:16px;width:100%;border:none;
+    border-radius:18px;padding:22px 20px;margin:0 0 14px;color:#fff;font-size:21px;
+    font-weight:650;text-align:left;cursor:pointer;}
+  .choice .emoji{font-size:30px;line-height:1;}
+  .choice small{display:block;font-weight:400;font-size:13px;opacity:.85;margin-top:3px;}
+  .badge{position:absolute;top:12px;right:14px;width:26px;height:26px;border-radius:50%;
+    background:rgba(255,255,255,.92);color:#16263f;font-size:16px;font-weight:800;
+    display:none;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+  .c-gym{background:linear-gradient(135deg,#d8b15a,#b3893a);}
+  .c-yoga{background:linear-gradient(135deg,#c2914f,#9b6c30);}
+  .c-rest{background:linear-gradient(135deg,#a87a4c,#825a34);}
+  .c-stretch{background:linear-gradient(135deg,#c89a55,#9c7333);}
+  .c-desk{background:linear-gradient(135deg,#b08a4e,#876430);}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:18px;margin:0 0 14px;}
+  .card h2{margin:0 0 4px;font-size:20px;}
+  .card .meta{color:var(--muted);font-size:13px;margin:0 0 14px;}
+
+  .btn{display:block;width:100%;border:none;border-radius:14px;padding:16px;
+    font-size:17px;font-weight:600;color:#fff;cursor:pointer;margin:0 0 10px;
+    text-decoration:none;text-align:center;}
+  .btn.primary{background:var(--yoga);}
+  .btn.gym{background:var(--gym);}
+  .btn.play{background:#b5533a;}
+  .btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line);}
+  .btn:active{filter:brightness(.9);}
+
+  .back{background:none;border:none;color:var(--muted);font-size:15px;
+    padding:6px 0 14px;cursor:pointer;}
+
+  .ex{padding:11px 0;border-bottom:1px solid var(--line);font-size:16px;}
+  .ex:last-child{border-bottom:none;}
+  .extop{display:flex;justify-content:space-between;gap:12px;align-items:center;}
+  .ex .left{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
+  .ex .icn{width:42px;height:42px;flex:none;
+    background:var(--card2);border-radius:9px;padding:3px;}
+  .ex .n{padding-right:8px;}
+  .ex .right{display:flex;align-items:center;gap:14px;flex:none;}
+  .ex .r{color:var(--muted);font-size:14px;white-space:nowrap;}
+  .ex .photo{text-decoration:none;font-size:21px;line-height:1;}
+  .boxes{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 1px 54px;}
+  .box{width:30px;height:30px;border-radius:7px;border:1.5px solid var(--line);
+    background:var(--card2);color:var(--gold);font-size:17px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .box.on{background:var(--gold);border-color:var(--gold);color:#16263f;}
+  .ex.done .icn{opacity:.5;}
+  .ex.done .n{color:var(--muted);}
+  .pill-row{display:flex;gap:10px;margin:0 0 14px;}
+  .pill{flex:1;background:var(--card2);border:1px solid var(--line);color:var(--text);
+    border-radius:12px;padding:13px 0;font-size:16px;font-weight:600;cursor:pointer;text-align:center;}
+  .pill.sel{background:var(--yoga);border-color:var(--yoga);color:#fff;}
+
+  .vid{background:var(--card2);border-radius:14px;padding:16px;margin:0 0 14px;text-align:center;}
+  .vid .t{font-size:18px;font-weight:650;margin:0 0 4px;}
+  .vid .d{color:var(--muted);font-size:14px;}
+  .note{color:var(--muted);font-size:13px;line-height:1.5;margin:14px 2px 0;}
+  .day{font-size:42px;font-weight:800;text-align:center;margin:6px 0 2px;color:var(--gold);}
+  .clock{font-size:58px;font-weight:800;text-align:center;margin:10px 0 14px;
+    color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:1px;}
+  .clock.ding{animation:flash .5s ease-in-out 3;}
+  @keyframes flash{50%{color:#e07a5f;transform:scale(1.06);}}
+  .stretch-item{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+  .stretch-item:last-of-type{border-bottom:none;}
+  .sicn{width:50px;height:50px;flex:none;background:var(--card2);border-radius:9px;padding:3px;}
+  .stretch-item .stext{min-width:0;}
+  .stretch-item .sn{font-weight:650;font-size:17px;}
+  .stretch-item .sd{color:var(--muted);font-size:14px;margin-top:3px;line-height:1.45;}
+  .restbig{font-size:30px;text-align:center;margin:18px 0;line-height:1.4;}
+  .divider{border:none;border-top:2px solid var(--gold);margin:8px 2px 18px;opacity:.9;}
+</style>
+</head>
+<body>
+
+<!-- ====================== HOME ====================== -->
+<section id="home" class="screen active">
+  <h1>Move Today</h1>
+  <p class="sub">What are we doing?</p>
+  <button class="choice c-stretch" onclick="show('timer')">
+    <span class="emoji">⏱️</span>
+    <span>Stretch timer<small>3, 5 or 8 minutes</small></span>
+    <span class="badge" id="b_stretch">✓</span>
+  </button>
+  <button class="choice c-desk" onclick="show('desk');shuffleDesk()">
+    <span class="emoji">🪑</span>
+    <span>Desk stretches<small>3 quick picks for desk-sitters</small></span>
+    <span class="badge" id="b_desk">✓</span>
+  </button>
+  <hr class="divider">
+  <button class="choice c-gym" onclick="show('gym')">
+    <span class="emoji">🏋️‍♀️</span>
+    <span>Gym workout<small>Planet Fitness — full-body day</small></span>
+    <span class="badge" id="b_gym">✓</span>
+  </button>
+  <button class="choice c-yoga" onclick="show('yoga')">
+    <span class="emoji">🧘‍♀️</span>
+    <span>Yoga at home<small>Series day or a surprise pick</small></span>
+    <span class="badge" id="b_yoga">✓</span>
+  </button>
+  <button class="choice c-rest" onclick="show('rest')">
+    <span class="emoji">😌</span>
+    <span>Rest day<small>Recover. You earned it.</small></span>
+    <span class="badge" id="b_rest">✓</span>
+  </button>
+</section>
+
+<!-- ====================== GYM ====================== -->
+<section id="gym" class="screen">
+  <button class="back" onclick="show('home')">‹ Back</button>
+  <div class="card">
+    <h2 id="gymTitle">Full-Body A</h2>
+    <p class="meta">Check off each set as you finish. Tap 📷 for a real photo.</p>
+    <div id="gymList"></div>
+  </div>
+  <button class="btn gym" onclick="rotateGym()">Give me a different day</button>
+  <button class="btn ghost" onclick="resetGym()">Reset checkmarks</button>
+  <p class="note">Want to change these workouts? Just tell Claude what to swap in — this is a starter set built for short, full-body sessions you can do on any gym day.</p>
+</section>
+
+<!-- ====================== YOGA ====================== -->
+<section id="yoga" class="screen">
+  <button class="back" onclick="show('home')">‹ Back</button>
+
+  <div class="card">
+    <h2>Continue my series</h2>
+    <p class="meta">30 Days of Yoga, in order.</p>
+    <div class="day">Day <span id="seriesDay">3</span></div>
+    <a class="btn primary" id="seriesLink" target="_blank" rel="noopener">Open the series playlist</a>
+    <button class="btn ghost" onclick="markDayDone()">Mark Day <span id="seriesDay2">3</span> done →</button>
+    <p class="note">The playlist plays in order — scroll to your day number. "Mark done" bumps you to the next day for tomorrow.</p>
+  </div>
+
+  <div class="card">
+    <h2>Surprise me 🎲</h2>
+    <p class="meta">Pick a length, get a random Yoga with Adriene practice.</p>
+    <div class="pill-row" id="yogaPills">
+      <div class="pill" data-len="30" onclick="pickLen(30)">~30 min</div>
+      <div class="pill" data-len="45" onclick="pickLen(45)">~45 min</div>
+      <div class="pill" data-len="60" onclick="pickLen(60)">~60 min</div>
+    </div>
+    <div id="vidBox" style="display:none">
+      <div class="vid">
+        <div class="t" id="vidTitle"></div>
+        <div class="d" id="vidDur"></div>
+      </div>
+      <a class="btn play" id="vidPlay" target="_blank" rel="noopener">▶ Play this one</a>
+      <button class="btn ghost" onclick="shuffle()">🎲 Shuffle again</button>
+      <a class="btn ghost" id="vidPlaylist" target="_blank" rel="noopener">Browse the full length playlist</a>
+    </div>
+    <p class="note">To watch on your iPad: open the video, then tap the AirPlay icon (or Cast) in YouTube and choose your iPad. That hand-off is a manual tap — the app can't do it for you.</p>
+  </div>
+</section>
+
+<!-- ====================== REST ====================== -->
+<section id="rest" class="screen">
+  <button class="back" onclick="show('home')">‹ Back</button>
+  <div class="card">
+    <div class="restbig">😌<br>Rest day.</div>
+    <p class="meta" style="text-align:center">Recovery is part of the program. Hydrate, get some light movement if you feel like it (a walk counts), and call it.</p>
+    <button class="btn primary" onclick="setDone('rest');show('home')">Mark rest day done ✓</button>
+  </div>
+</section>
+
+<!-- ====================== STRETCH TIMER ====================== -->
+<section id="timer" class="screen">
+  <button class="back" onclick="show('home')">‹ Back</button>
+  <div class="card">
+    <h2>Stretch timer</h2>
+    <p class="meta">Pick a length, hit start. It beeps and buzzes when time's up.</p>
+    <div class="pill-row" id="t1_pills">
+      <div class="pill" data-min="3">3 min</div>
+      <div class="pill" data-min="5">5 min</div>
+      <div class="pill" data-min="8">8 min</div>
+    </div>
+    <div class="clock" id="t1_disp">03:00</div>
+    <button class="btn primary" id="t1_go">Start</button>
+    <button class="btn ghost" id="t1_reset">Reset</button>
+  </div>
+</section>
+
+<!-- ====================== DESK STRETCHES ====================== -->
+<section id="desk" class="screen">
+  <button class="back" onclick="show('home')">‹ Back</button>
+  <div class="card">
+    <h2>Desk stretches</h2>
+    <p class="meta">Three quick stretches for anyone who sits all day.</p>
+    <div id="deskList"></div>
+    <button class="btn primary" onclick="shuffleDesk()">🎲 New 3 stretches</button>
+  </div>
+  <div class="card">
+    <h2>Time it</h2>
+    <p class="meta">Same timers, right here.</p>
+    <div class="pill-row" id="t2_pills">
+      <div class="pill" data-min="3">3 min</div>
+      <div class="pill" data-min="5">5 min</div>
+      <div class="pill" data-min="8">8 min</div>
+    </div>
+    <div class="clock" id="t2_disp">03:00</div>
+    <button class="btn primary" id="t2_go">Start</button>
+    <button class="btn ghost" id="t2_reset">Reset</button>
+  </div>
+</section>
+
+<script>
+/* =========================================================
+   MACHINE ICONS — gray = machine, blue = body position.
+   Shows how you sit/stand on each one. (viewBox 0 0 60 60)
+   ========================================================= */
+const ICON_M = { // machine (gray)
+  treadmill:'<path d="M6 48h32l5 5H11z"/><path d="M38 48V22"/><path d="M31 25h13"/><rect x="34" y="13" width="12" height="9" rx="1"/>',
+  legpress:'<path d="M6 54h44"/><path d="M14 30v20"/><path d="M14 48h8"/><path d="M46 28v22"/><path d="M22 50h24"/><rect x="6" y="36" width="6" height="14"/>',
+  chestpress:'<path d="M10 54h40"/><path d="M24 26v24"/><path d="M24 46h-8"/><circle cx="42" cy="30" r="2"/><circle cx="42" cy="38" r="2"/><rect x="46" y="32" width="6" height="14"/>',
+  pulldown:'<path d="M12 54h28"/><path d="M16 54V12h14"/><path d="M30 12h6"/><path d="M33 14v6"/><path d="M26 20h14"/><path d="M22 42h12"/><rect x="40" y="30" width="6" height="14"/>',
+  shoulderpress:'<path d="M10 54h34"/><path d="M26 28v22"/><path d="M26 48h-8"/><rect x="29" y="13" width="6" height="5"/><rect x="20" y="36" width="6" height="14"/>',
+  plank:'<path d="M6 48h40"/>',
+  legext:'<path d="M10 54h36"/><path d="M28 28v22"/><path d="M28 48h-8"/><circle cx="50" cy="39" r="3"/><rect x="33" y="34" width="6" height="14"/>',
+  legcurl:'<path d="M10 54h36"/><path d="M28 28v22"/><path d="M28 48h-8"/><circle cx="46" cy="46" r="3"/><rect x="33" y="34" width="6" height="14"/>',
+  row:'<path d="M10 54h34"/><rect x="10" y="46" width="12" height="4"/><path d="M40 22v16"/><circle cx="40" cy="24" r="2"/><rect x="44" y="36" width="6" height="14"/>',
+  crunch:'<path d="M6 48h40"/>',
+  stairs:'<path d="M10 54h26"/><path d="M14 54V42h6V35h6V28h6"/><path d="M32 28V54"/><path d="M32 26V14"/><rect x="27" y="6" width="11" height="9" rx="1"/>',
+  hipabd:'<path d="M14 54h20"/><rect x="20" y="46" width="8" height="6"/><rect x="8" y="40" width="5" height="12"/><rect x="35" y="40" width="5" height="12"/>',
+  pecdeck:'<path d="M14 54h20"/><rect x="20" y="46" width="8" height="6"/><rect x="7" y="14" width="5" height="14"/><rect x="36" y="14" width="5" height="14"/><path d="M24 46V34"/>',
+  latraise:'<path d="M11 15v6M37 15v6"/>',
+  glutebridge:'<rect x="5" y="42" width="13" height="5"/><path d="M4 54h44"/>',
+  elliptical:'<path d="M8 54h40"/><circle cx="15" cy="34" r="6"/><path d="M15 34 L42 46"/><rect x="38" y="44" width="10" height="4"/><path d="M40 46V14"/><circle cx="40" cy="12" r="2"/>'
+};
+const ICON_P = { // person (blue)
+  treadmill:'<circle cx="18" cy="26" r="3"/><path d="M18 29 L20 40"/><path d="M20 40 L26 48"/><path d="M20 40 L14 47"/><path d="M19 32 L24 34"/><path d="M19 32 L14 30"/>',
+  legpress:'<circle cx="18" cy="26" r="3"/><path d="M18 29 L20 46"/><path d="M20 46 L34 44"/><path d="M34 44 L44 40"/><path d="M19 33 L24 40"/>',
+  chestpress:'<circle cx="28" cy="24" r="3"/><path d="M28 27v16"/><path d="M28 43h10"/><path d="M38 43v8"/><path d="M28 31 L42 34"/>',
+  pulldown:'<circle cx="28" cy="34" r="3"/><path d="M28 37v6"/><path d="M28 43h8"/><path d="M36 43v6"/><path d="M28 35 L30 22"/><path d="M28 35 L26 22"/>',
+  shoulderpress:'<circle cx="30" cy="28" r="3"/><path d="M30 31v14"/><path d="M30 45h9"/><path d="M39 45v6"/><path d="M30 33 L26 20"/><path d="M30 33 L34 20"/>',
+  plank:'<circle cx="13" cy="35" r="3"/><path d="M15 37 L40 42"/><path d="M16 38 L13 47 L20 47"/><path d="M40 42 L42 47"/>',
+  legext:'<circle cx="30" cy="26" r="3"/><path d="M30 29v14"/><path d="M30 43h10"/><path d="M40 43 L49 39"/>',
+  legcurl:'<circle cx="30" cy="26" r="3"/><path d="M30 29v14"/><path d="M30 43h12"/><path d="M42 43 L46 52"/>',
+  row:'<circle cx="16" cy="28" r="3"/><path d="M16 31v12"/><path d="M16 43h12"/><path d="M28 43 L26 50"/><path d="M16 34 L30 32"/><path d="M30 32 L40 26"/>',
+  crunch:'<circle cx="12" cy="42" r="3"/><path d="M14 44 L26 42"/><path d="M26 42 L32 32 L30 42"/><path d="M26 42 L40 44"/><path d="M15 41 L22 36"/>',
+  stairs:'<circle cx="16" cy="28" r="3"/><path d="M16 31 L18 40"/><path d="M18 40 L16 47"/><path d="M18 40 L24 38"/><path d="M17 33 L26 30"/>',
+  hipabd:'<circle cx="24" cy="18" r="3"/><path d="M24 21v12"/><path d="M24 33 L13 44"/><path d="M24 33 L35 44"/>',
+  pecdeck:'<circle cx="24" cy="16" r="3"/><path d="M24 19v15"/><path d="M24 23 L12 19"/><path d="M24 23 L36 19"/>',
+  latraise:'<circle cx="24" cy="12" r="3"/><path d="M24 15v15"/><path d="M24 18h-11M24 18h11"/><path d="M24 30 L18 42"/><path d="M24 30 L30 42"/>',
+  glutebridge:'<circle cx="12" cy="38" r="3"/><path d="M14 40 L26 30"/><path d="M26 30 L34 47"/>',
+  elliptical:'<circle cx="30" cy="20" r="3"/><path d="M30 23v12"/><path d="M30 35 L40 44"/><path d="M30 35 L24 42"/><path d="M30 26 L40 22"/>'
+};
+
+/* =========================================================
+   EDIT YOUR GYM WORKOUTS HERE
+   Each exercise is [name, "sets x reps", "photo search term", iconKey].
+   Tap the row to check off. Tap 📷 for a real photo.
+   ========================================================= */
+const GYM = {
+  "Full-Body A": [
+    ["Treadmill warm-up", "5 min", "treadmill gym machine", "treadmill"],
+    ["Leg press machine", "3 x 10", "leg press machine gym", "legpress"],
+    ["Chest press machine", "3 x 10", "chest press machine gym", "chestpress"],
+    ["Lat pulldown", "3 x 12", "lat pulldown machine gym", "pulldown"],
+    ["Shoulder press machine", "3 x 10", "shoulder press machine gym", "shoulderpress"],
+    ["Plank", "3 x 30 sec", "plank exercise form", "plank"],
+    ["Treadmill / incline walk", "10 min", "treadmill gym machine", "treadmill"]
+  ],
+  "Full-Body B": [
+    ["Treadmill warm-up", "5 min", "treadmill gym machine", "treadmill"],
+    ["Leg extension machine", "3 x 12", "leg extension machine gym", "legext"],
+    ["Seated leg curl machine", "3 x 12", "seated leg curl machine gym", "legcurl"],
+    ["Seated row machine", "3 x 12", "seated row machine gym", "row"],
+    ["Incline chest press machine", "3 x 10", "incline chest press machine gym", "chestpress"],
+    ["Bicycle crunches", "3 x 20", "bicycle crunches exercise form", "crunch"],
+    ["Stairmaster / bike", "10 min", "stairmaster machine gym", "stairs"]
+  ],
+  "Full-Body C": [
+    ["Treadmill warm-up", "5 min", "treadmill gym machine", "treadmill"],
+    ["Hip abduction machine", "3 x 12", "hip abduction machine gym", "hipabd"],
+    ["Close-grip lat pulldown", "3 x 10", "close grip lat pulldown machine gym", "pulldown"],
+    ["Pec deck (chest fly) machine", "3 x 12", "pec deck fly machine gym", "pecdeck"],
+    ["Dumbbell lateral raises", "3 x 12", "dumbbell lateral raise exercise form", "latraise"],
+    ["Glute bridge (on bench)", "3 x 15", "glute bridge exercise form", "glutebridge"],
+    ["Elliptical", "10 min", "elliptical machine gym", "elliptical"]
+  ]
+};
+
+/* =========================================================
+   YOGA VIDEOS — verified Yoga with Adriene links.
+   Add or swap any time.
+   ========================================================= */
+const YOGA = {
+  short: [ // ~30 min
+    {t:"Yoga for Core (and Booty!)", d:"30 min", id:"oMOgnSMcfM0"},
+    {t:"Yoga Morning Fresh", d:"35 min", id:"OMu6OKF5Z1k"},
+    {t:"Runner's Yoga", d:"~30 min", id:"0hTllAb4XGg"}
+  ],
+  long: [ // ~45-60 min
+    {t:"Total Body Yoga – Deep Stretch", d:"45 min", id:"GLy2rYHwUqY"},
+    {t:"Yoga For Renewal", d:"45 min", id:"U5kgE1Q51M0"},
+    {t:"Self Love Yoga – Full Class", d:"~50 min", id:"GAnKh5kKpgA"}
+  ]
+};
+const PLAYLISTS = {
+  series:"https://www.youtube.com/playlist?list=PLui6Eyny-UzwxbWCWDbTzEwsZnnROBTIL",
+  short:"https://www.youtube.com/playlist?list=PLui6Eyny-UzwmsJ9vILet4TJwqcINCz4j",
+  long:"https://www.youtube.com/playlist?list=PLui6Eyny-Uzwzd-9fi_cmhz3UW9gS1raf"
+};
+
+/* ---------- navigation ---------- */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ---------- daily completion badges ---------- */
+function today(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function dailyGet(){
+  let d=JSON.parse(localStorage.getItem('daily')||'{}');
+  if(d.date!==today()){
+    d={date:today()};
+    localStorage.setItem('daily',JSON.stringify(d));
+    Object.keys(localStorage).filter(k=>k.indexOf('gymSets_')===0).forEach(k=>localStorage.removeItem(k));
+  }
+  return d;
+}
+function setDailyFlag(cat,val){ const d=dailyGet(); d[cat]=val; localStorage.setItem('daily',JSON.stringify(d)); updateBadges(); }
+function setDone(cat){ setDailyFlag(cat,true); }
+function updateBadges(){
+  const d=dailyGet();
+  ['stretch','desk','gym','yoga','rest'].forEach(c=>{
+    const el=document.getElementById('b_'+c);
+    if(el) el.style.display = d[c] ? 'flex' : 'none';
+  });
+}
+
+/* ---------- gym ---------- */
+const gymDays = Object.keys(GYM);
+let gymIdx = parseInt(localStorage.getItem('gymIdx')||'0',10);
+function setCount(reps){ const m=String(reps).match(/^\s*(\d+)\s*x/i); return m?parseInt(m[1],10):1; }
+function renderGym(){
+  dailyGet();
+  const name = gymDays[gymIdx % gymDays.length];
+  document.getElementById('gymTitle').textContent = name;
+  const state = JSON.parse(localStorage.getItem('gymSets_'+name)||'{}');
+  const box = document.getElementById('gymList');
+  box.innerHTML='';
+  GYM[name].forEach((e,i)=>{
+    const sets=setCount(e[1]);
+    const checked=state[i]||[];
+    const allDone=checked.length>=sets;
+    const row=document.createElement('div');
+    row.className='ex'+(allDone?' done':'');
+    const photo="https://www.google.com/search?tbm=isch&q="+encodeURIComponent("planet fitness "+(e[2]||e[0]));
+    const k=e[3];
+    const icon='<g fill="none" stroke="#9c9078" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(ICON_M[k]||'')+'</g>'+
+               '<g fill="none" stroke="#d4af5a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(ICON_P[k]||'')+'</g>';
+    let boxes='';
+    for(let s=0;s<sets;s++){ const on=checked.includes(s); boxes+='<button class="box'+(on?' on':'')+'" data-s="'+s+'">'+(on?'✓':'')+'</button>'; }
+    row.innerHTML='<div class="extop">'+
+        '<span class="left"><svg class="icn" viewBox="0 0 60 60">'+icon+'</svg>'+
+          '<span class="n">'+(allDone?'✓ ':'')+e[0]+'</span></span>'+
+        '<span class="right"><span class="r">'+e[1]+'</span>'+
+          '<a class="photo" href="'+photo+'" target="_blank" rel="noopener" title="See a real photo">📷</a></span>'+
+      '</div>'+
+      '<div class="boxes">'+boxes+'</div>';
+    row.querySelector('.photo').onclick=(ev)=>ev.stopPropagation();
+    row.querySelectorAll('.box').forEach(b=>{ b.onclick=()=>{
+      const st=JSON.parse(localStorage.getItem('gymSets_'+name)||'{}');
+      const arr=new Set(st[i]||[]); const s=+b.dataset.s;
+      arr.has(s)?arr.delete(s):arr.add(s);
+      st[i]=[...arr]; localStorage.setItem('gymSets_'+name,JSON.stringify(st));
+      renderGym();
+    };});
+    box.appendChild(row);
+  });
+  const gymComplete = GYM[name].every((e,i)=> ((state[i]||[]).length>=setCount(e[1])) );
+  setDailyFlag('gym', gymComplete);
+}
+function rotateGym(){ gymIdx=(gymIdx+1)%gymDays.length; localStorage.setItem('gymIdx',gymIdx); renderGym(); }
+function resetGym(){ localStorage.removeItem('gymSets_'+gymDays[gymIdx%gymDays.length]); renderGym(); }
+
+/* ---------- yoga series ---------- */
+let day = parseInt(localStorage.getItem('seriesDay')||'3',10);
+function renderSeries(){
+  document.getElementById('seriesDay').textContent=day;
+  document.getElementById('seriesDay2').textContent=day;
+  document.getElementById('seriesLink').href=PLAYLISTS.series;
+}
+function markDayDone(){
+  day = day>=30 ? 1 : day+1;
+  localStorage.setItem('seriesDay',day);
+  renderSeries();
+  setDone('yoga');
+}
+
+/* ---------- yoga surprise ---------- */
+let curLen=null;
+function bucket(len){ return len===30 ? 'short' : 'long'; }
+function pickLen(len){
+  curLen=len;
+  document.querySelectorAll('#yogaPills .pill').forEach(p=>p.classList.toggle('sel',+p.dataset.len===len));
+  shuffle();
+  document.getElementById('vidBox').style.display='block';
+}
+function shuffle(){
+  if(curLen===null) return;
+  const b=bucket(curLen);
+  const list=YOGA[b];
+  const v=list[Math.floor(Math.random()*list.length)];
+  document.getElementById('vidTitle').textContent=v.t;
+  document.getElementById('vidDur').textContent=v.d+" • Yoga with Adriene";
+  document.getElementById('vidPlay').href="https://www.youtube.com/watch?v="+v.id;
+  document.getElementById('vidPlaylist').href=PLAYLISTS[b];
+}
+
+/* ---------- desk stretches ---------- */
+const STRETCHES = [
+  ["Neck side tilt","Drop one ear toward that shoulder. Hold 20s, switch sides."],
+  ["Neck rotation","Slowly turn your head to look over each shoulder. Hold 15s per side."],
+  ["Chin tucks","Pull your chin straight back to make a double chin. Hold 5s, repeat 5x."],
+  ["Upper-trap stretch","Gently pull your head toward one shoulder with the same-side hand. Hold 20s each."],
+  ["Shoulder rolls","Roll shoulders backward 10 times, then forward 10 times."],
+  ["Shoulder-blade squeeze","Pull your shoulder blades together and down. Hold 5s, repeat 8x."],
+  ["Cross-body shoulder stretch","Pull one arm across your chest with the other arm. Hold 20s each."],
+  ["Overhead triceps stretch","Reach one hand down your back, press the elbow gently. Hold 20s each."],
+  ["Seated chest opener","Clasp hands behind your back and lift slightly. Hold 20s."],
+  ["Wrist flexor stretch","Arm out, palm up, gently pull the fingers back. Hold 20s each."],
+  ["Wrist extensor stretch","Arm out, palm down, gently press the back of the hand down. Hold 20s each."],
+  ["Wrist circles","Make slow circles with both wrists, 10 each direction."],
+  ["Finger spreads","Spread fingers wide, then make a fist. Repeat 10x."],
+  ["Prayer stretch","Press palms together at your chest, lower your hands while keeping them touching. Hold 15s."],
+  ["Seated spinal twist","Sit tall and twist to one side, holding the chair back. Hold 20s each."],
+  ["Seated cat-cow","Round your back, then arch it, moving with your breath. 8 reps."],
+  ["Seated side bend","Reach one arm overhead and lean to the opposite side. Hold 20s each."],
+  ["Seated forward fold","Hinge forward over your thighs and let your arms hang. Hold 30s."],
+  ["Knee-to-chest","Hug one knee toward your chest while seated. Hold 20s each."],
+  ["Seated figure-4","Cross one ankle over the opposite knee, lean forward slightly. Hold 25s each."],
+  ["Hip flexor stretch","Stand, step one foot back, tuck your pelvis under. Hold 25s each."],
+  ["Seated hamstring stretch","Extend one leg straight, heel down, hinge forward. Hold 25s each."],
+  ["Standing quad stretch","Hold your chair, pull one heel toward your glute. Hold 25s each."],
+  ["Calf raises","Stand and rise onto your toes, lower slowly. 15 reps."],
+  ["Ankle circles","Lift one foot and circle the ankle 10x each way, then switch."],
+  ["Standing calf stretch","Hands on the desk, step one foot back, press the heel down. Hold 25s each."],
+  ["Standing forward fold","Stand and fold forward, letting your head and arms hang. Hold 30s."],
+  ["Wall chest stretch","Forearm on a wall/doorframe, rotate your body away. Hold 20s each."],
+  ["Eye reset (20-20-20)","Every 20 min, look 20 feet away for 20 seconds."],
+  ["Seated deep breathing","Sit tall. Inhale 4 counts, exhale 6 counts. Repeat 5x."]
+];
+const STRETCH_M=["<path d=\"M14 54h32\"/>","<path d=\"M14 54h32\"/>","<path d=\"M14 54h32\"/>","<path d=\"M14 54h32\"/>","<path d=\"M14 54h32\"/>","<path d=\"M14 54h32\"/>","<path d=\"M14 54h32\"/>","<path d=\"M14 54h32\"/>","<path d=\"M14 54h32\"/>","","","","","<path d=\"M14 54h32\"/>","<path d=\"M26 40h18\"/><path d=\"M44 40V22\"/><path d=\"M28 40v13\"/><path d=\"M42 40v13\"/>","<path d=\"M26 40h18\"/><path d=\"M44 40V22\"/><path d=\"M28 40v13\"/><path d=\"M42 40v13\"/>","<path d=\"M26 40h18\"/><path d=\"M44 40V22\"/><path d=\"M28 40v13\"/><path d=\"M42 40v13\"/>","<path d=\"M26 40h18\"/><path d=\"M44 40V22\"/><path d=\"M28 40v13\"/><path d=\"M42 40v13\"/>","<path d=\"M26 40h18\"/><path d=\"M44 40V22\"/><path d=\"M28 40v13\"/><path d=\"M42 40v13\"/>","<path d=\"M26 40h18\"/><path d=\"M44 40V22\"/><path d=\"M28 40v13\"/><path d=\"M42 40v13\"/>","<path d=\"M14 54h32\"/>","<path d=\"M26 40h18\"/><path d=\"M44 40V22\"/><path d=\"M28 40v13\"/><path d=\"M42 40v13\"/>","<path d=\"M14 54h32\"/>","<path d=\"M14 54h32\"/>","<path d=\"M26 40h18\"/><path d=\"M44 40V22\"/><path d=\"M28 40v13\"/><path d=\"M42 40v13\"/>","<path d=\"M40 30v20\"/><path d=\"M40 30h10\"/><path d=\"M14 53h36\"/>","<path d=\"M14 54h32\"/>","<path d=\"M48 8v46\"/><path d=\"M14 54h34\"/>","","<path d=\"M26 40h18\"/><path d=\"M44 40V22\"/><path d=\"M28 40v13\"/><path d=\"M42 40v13\"/>"];
+const STRETCH_P=["<circle cx=\"34\" cy=\"15\" r=\"3\"/><path d=\"M30 22 L33 17\"/><path d=\"M30 22V40\"/><path d=\"M22 27H38\"/><path d=\"M30 40 L24 53\"/><path d=\"M30 40 L36 53\"/>","<circle cx=\"30\" cy=\"15\" r=\"3\"/><path d=\"M33 15h3\"/><path d=\"M30 18V40\"/><path d=\"M22 27H38\"/><path d=\"M30 40 L24 53\"/><path d=\"M30 40 L36 53\"/>","<circle cx=\"30\" cy=\"15\" r=\"3\"/><path d=\"M27 15h-3\"/><path d=\"M30 18V40\"/><path d=\"M24 27H36\"/><path d=\"M30 40 L25 53\"/><path d=\"M30 40 L35 53\"/>","<circle cx=\"33\" cy=\"15\" r=\"3\"/><path d=\"M30 22 L32 17\"/><path d=\"M30 22V40\"/><path d=\"M30 25 L38 14 L33 14\"/><path d=\"M30 28 L22 34\"/><path d=\"M30 40 L25 53\"/><path d=\"M30 40 L35 53\"/>","<circle cx=\"30\" cy=\"14\" r=\"3\"/><path d=\"M30 18V40\"/><path d=\"M24 26H36\"/><circle cx=\"22\" cy=\"26\" r=\"3\"/><path d=\"M30 40 L24 53\"/><path d=\"M30 40 L36 53\"/>","<circle cx=\"30\" cy=\"14\" r=\"3\"/><path d=\"M30 18V40\"/><path d=\"M30 26 L20 24\"/><path d=\"M30 26 L40 24\"/><path d=\"M20 24 L23 30\"/><path d=\"M40 24 L37 30\"/><path d=\"M30 40 L25 53\"/><path d=\"M30 40 L35 53\"/>","<circle cx=\"30\" cy=\"14\" r=\"3\"/><path d=\"M30 18V40\"/><path d=\"M30 24 L16 28\"/><path d=\"M30 30 L18 27\"/><path d=\"M30 40 L25 53\"/><path d=\"M30 40 L35 53\"/>","<circle cx=\"30\" cy=\"15\" r=\"3\"/><path d=\"M30 19V40\"/><path d=\"M30 22 L36 12 L28 18\"/><path d=\"M30 22 L40 14\"/><path d=\"M30 40 L25 53\"/><path d=\"M30 40 L35 53\"/>","<circle cx=\"28\" cy=\"14\" r=\"3\"/><path d=\"M28 18 L30 40\"/><path d=\"M28 22 L38 30\"/><path d=\"M28 26 L38 33\"/><path d=\"M30 40 L25 53\"/><path d=\"M30 40 L35 53\"/>","<circle cx=\"20\" cy=\"16\" r=\"3\"/><path d=\"M20 19v14\"/><path d=\"M20 24 L40 24\"/><path d=\"M40 24 L40 18\"/><path d=\"M40 24 L34 30\"/><path d=\"M40 24 L40 30\"/><path d=\"M20 33 L15 46\"/><path d=\"M20 33 L25 46\"/>","<circle cx=\"20\" cy=\"16\" r=\"3\"/><path d=\"M20 19v14\"/><path d=\"M20 24 L40 24\"/><path d=\"M40 24 L40 30\"/><path d=\"M40 24 L34 20\"/><path d=\"M40 24 L40 18\"/><path d=\"M20 33 L15 46\"/><path d=\"M20 33 L25 46\"/>","<circle cx=\"24\" cy=\"16\" r=\"3\"/><path d=\"M24 19v14\"/><path d=\"M24 24 L36 28\"/><circle cx=\"40\" cy=\"30\" r=\"4\"/><path d=\"M24 33 L19 46\"/><path d=\"M24 33 L29 46\"/>","<path d=\"M30 44V28\"/><path d=\"M30 28 L24 18\"/><path d=\"M30 28 L28 16\"/><path d=\"M30 28 L32 16\"/><path d=\"M30 28 L36 18\"/><path d=\"M30 28 L22 22\"/>","<circle cx=\"30\" cy=\"13\" r=\"3\"/><path d=\"M30 17V40\"/><path d=\"M22 30 L30 22\"/><path d=\"M38 30 L30 22\"/><path d=\"M30 22V27\"/><path d=\"M30 40 L25 53\"/><path d=\"M30 40 L35 53\"/>","<circle cx=\"36\" cy=\"20\" r=\"3\"/><path d=\"M36 23 L34 40\"/><path d=\"M34 40 L24 40\"/><path d=\"M24 40 L24 50\"/><path d=\"M35 28 L44 32\"/><path d=\"M35 30 L28 26\"/>","<circle cx=\"24\" cy=\"26\" r=\"3\"/><path d=\"M26 28 Q34 22 38 36\"/><path d=\"M38 40 L38 40\"/><path d=\"M34 40 L24 40\"/><path d=\"M24 40 L24 50\"/>","<circle cx=\"32\" cy=\"20\" r=\"3\"/><path d=\"M34 22 Q40 30 36 40\"/><path d=\"M34 24 L24 14\"/><path d=\"M36 40 L26 40\"/><path d=\"M26 40 L26 50\"/>","<circle cx=\"22\" cy=\"30\" r=\"3\"/><path d=\"M24 31 L36 40\"/><path d=\"M36 40 L26 40\"/><path d=\"M24 33 L24 40\"/><path d=\"M26 40 L26 50\"/>","<circle cx=\"34\" cy=\"20\" r=\"3\"/><path d=\"M34 23V40\"/><path d=\"M34 36 L26 30\"/><path d=\"M34 40 L26 40\"/><path d=\"M26 40 L26 50\"/><path d=\"M34 33 L26 32\"/>","<circle cx=\"34\" cy=\"20\" r=\"3\"/><path d=\"M34 23V40\"/><path d=\"M34 40 L24 40\"/><path d=\"M24 40 L24 50\"/><path d=\"M28 40 L36 46\"/>","<circle cx=\"28\" cy=\"14\" r=\"3\"/><path d=\"M28 18V32\"/><path d=\"M28 32 L20 44 L20 53\"/><path d=\"M28 32 L40 40 L44 53\"/><path d=\"M28 24 L22 30\"/>","<circle cx=\"24\" cy=\"26\" r=\"3\"/><path d=\"M25 28 L34 38\"/><path d=\"M34 38 L48 40\"/><path d=\"M26 30 L44 40\"/>","<circle cx=\"30\" cy=\"14\" r=\"3\"/><path d=\"M30 18V34\"/><path d=\"M30 34 L26 53\"/><path d=\"M30 34 L38 44 L30 40\"/><path d=\"M30 38 L38 44\"/>","<circle cx=\"30\" cy=\"14\" r=\"3\"/><path d=\"M30 18V36\"/><path d=\"M30 36 L26 50\"/><path d=\"M30 36 L34 50\"/><path d=\"M22 50h16\"/>","<circle cx=\"34\" cy=\"20\" r=\"3\"/><path d=\"M34 23V40\"/><path d=\"M34 40 L24 40\"/><path d=\"M24 40 L24 48\"/><circle cx=\"20\" cy=\"50\" r=\"4\"/>","<circle cx=\"22\" cy=\"16\" r=\"3\"/><path d=\"M22 20 L30 30\"/><path d=\"M30 30 L18 48\"/><path d=\"M30 30 L40 36\"/><path d=\"M22 24 L34 30\"/>","<circle cx=\"22\" cy=\"30\" r=\"3\"/><path d=\"M24 31 L30 22\"/><path d=\"M30 22V40\"/><path d=\"M24 31 L20 40\"/><path d=\"M30 40 L26 53\"/><path d=\"M30 40 L34 53\"/>","<circle cx=\"26\" cy=\"16\" r=\"3\"/><path d=\"M26 20V38\"/><path d=\"M26 26 L46 22\"/><path d=\"M26 38 L22 53\"/><path d=\"M26 38 L30 53\"/>","<path d=\"M12 30 Q30 14 48 30 Q30 46 12 30Z\"/><circle cx=\"30\" cy=\"30\" r=\"6\"/>","<circle cx=\"32\" cy=\"20\" r=\"3\"/><path d=\"M32 23V40\"/><path d=\"M34 40 L24 40\"/><path d=\"M24 40 L24 50\"/><path d=\"M32 28 L24 32\"/><path d=\"M32 28 L40 32\"/>"];
+function shuffleDesk(){
+  const idx=[...Array(STRETCHES.length).keys()];
+  const pick=[];
+  for(let i=0;i<3 && idx.length;i++){ pick.push(idx.splice(Math.floor(Math.random()*idx.length),1)[0]); }
+  document.getElementById('deskList').innerHTML = pick.map(j=>{
+    const s=STRETCHES[j];
+    const icon='<g fill="none" stroke="#9c9078" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_M[j]||'')+'</g><g fill="none" stroke="#d4af5a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_P[j]||'')+'</g>';
+    return '<div class="stretch-item"><svg class="sicn" viewBox="0 0 60 60">'+icon+'</svg><div class="stext"><div class="sn">'+s[0]+'</div><div class="sd">'+s[1]+'</div></div></div>';
+  }).join('');
+}
+
+/* ---------- stretch timer (reusable) ---------- */
+function beep(){
+  try{
+    const A=window.AudioContext||window.webkitAudioContext; const a=new A();
+    let t=a.currentTime;
+    for(let i=0;i<3;i++){
+      const o=a.createOscillator(), g=a.createGain();
+      o.connect(g); g.connect(a.destination); o.type='sine'; o.frequency.value=880;
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.4,t+0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.22);
+      o.start(t); o.stop(t+0.24); t+=0.32;
+    }
+  }catch(e){}
+}
+function makeTimer(p,cat){
+  const pills=document.getElementById(p+'pills');
+  const disp=document.getElementById(p+'disp');
+  const go=document.getElementById(p+'go');
+  let total=300, left=300, iv=null, running=false;
+  const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  const render=()=>disp.textContent=fmt(left);
+  function setMins(m){
+    total=m*60; left=total; clearInterval(iv); running=false; go.textContent='Start';
+    disp.classList.remove('ding'); render();
+    [...pills.children].forEach(c=>c.classList.toggle('sel',+c.dataset.min===m));
+  }
+  function tick(){ left--; if(left<=0){ left=0; render(); clearInterval(iv); running=false; go.textContent='Start'; done(); return; } render(); }
+  function done(){ beep(); if(navigator.vibrate) navigator.vibrate([300,150,300,150,300]); disp.classList.add('ding'); if(cat) setDone(cat); }
+  go.onclick=()=>{
+    if(running){ clearInterval(iv); running=false; go.textContent='Start'; }
+    else { if(left<=0) left=total; disp.classList.remove('ding'); running=true; go.textContent='Pause'; iv=setInterval(tick,1000); }
+  };
+  document.getElementById(p+'reset').onclick=()=>{ clearInterval(iv); running=false; left=total; go.textContent='Start'; disp.classList.remove('ding'); render(); };
+  [...pills.children].forEach(c=>c.onclick=()=>setMins(+c.dataset.min));
+  setMins(3);
+}
+
+document.getElementById('vidPlay').onclick=()=>setDone('yoga');
+renderGym();
+renderSeries();
+shuffleDesk();
+makeTimer('t1_','stretch');
+makeTimer('t2_','desk');
+updateBadges();
+</script>
+</body>
+</html>
