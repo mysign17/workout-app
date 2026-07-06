@@ -39,6 +39,7 @@
   .c-rest{background:linear-gradient(135deg,#a87a4c,#825a34);}
   .c-stretch{background:linear-gradient(135deg,#c89a55,#9c7333);}
   .c-desk{background:linear-gradient(135deg,#b08a4e,#876430);}
+  .c-injury{background:linear-gradient(135deg,#5f7690,#405670);}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
     padding:18px;margin:0 0 14px;}
@@ -129,6 +130,11 @@
     <span class="emoji">😌</span>
     <span>Rest day<small>Recover. You earned it.</small></span>
     <span class="badge" id="b_rest">✓</span>
+  </button>
+  <button class="choice c-injury" onclick="show('injury');injBack()">
+    <span class="emoji">🤕</span>
+    <span>Injury workaround<small>Safe workouts by injured area</small></span>
+    <span class="badge" id="b_injury">✓</span>
   </button>
 </section>
 
@@ -226,6 +232,40 @@
     <div class="clock" id="t2_disp">03:00</div>
     <button class="btn primary" id="t2_go">Start</button>
     <button class="btn ghost" id="t2_reset">Reset</button>
+  </div>
+</section>
+
+<!-- ====================== INJURY WORKAROUND ====================== -->
+<section id="injury" class="screen">
+  <button class="back" onclick="show('home')">‹ Back</button>
+
+  <div id="injPicker">
+    <div class="card">
+      <h2>Injury workaround 🤕</h2>
+      <p class="meta">Which area are you working around? I'll swap in strength and stretches that keep it safe.</p>
+    </div>
+    <div id="injButtons"></div>
+    <p class="note">Not medical advice. If it's badly swollen, can't bear weight, or really hurts, get it looked at. When in doubt, rest.</p>
+  </div>
+
+  <div id="injDetail" style="display:none">
+    <button class="back" onclick="injBack()">‹ Choose a different area</button>
+    <div class="card">
+      <h2 id="injTitle"></h2>
+      <p class="meta" id="injAvoid"></p>
+    </div>
+    <div class="card">
+      <h2>Safe strength</h2>
+      <p class="meta">Check off each set.</p>
+      <div id="injList"></div>
+    </div>
+    <div class="card">
+      <h2>Gentle stretches</h2>
+      <p class="meta">Three that keep the area safe.</p>
+      <div id="injStretch"></div>
+      <button class="btn primary" onclick="rollInjStretch()">🎲 New 3 stretches</button>
+    </div>
+    <p class="note">Not medical advice. Stop anything that hurts. If it's not improving in a few days, see a pro.</p>
   </div>
 </section>
 
@@ -342,7 +382,7 @@ function dailyGet(){
   if(d.date!==today()){
     d={date:today()};
     localStorage.setItem('daily',JSON.stringify(d));
-    Object.keys(localStorage).filter(k=>k.indexOf('gymSets_')===0).forEach(k=>localStorage.removeItem(k));
+    Object.keys(localStorage).filter(k=>k.indexOf('gymSets_')===0||k.indexOf('injSets_')===0).forEach(k=>localStorage.removeItem(k));
   }
   return d;
 }
@@ -350,7 +390,7 @@ function setDailyFlag(cat,val){ const d=dailyGet(); d[cat]=val; localStorage.set
 function setDone(cat){ setDailyFlag(cat,true); }
 function updateBadges(){
   const d=dailyGet();
-  ['stretch','desk','gym','yoga','rest'].forEach(c=>{
+  ['injury','stretch','desk','gym','yoga','rest'].forEach(c=>{
     const el=document.getElementById('b_'+c);
     if(el) el.style.display = d[c] ? 'flex' : 'none';
   });
@@ -519,8 +559,103 @@ function makeTimer(p,cat){
   setMins(3);
 }
 
+/* ---------- injury workaround (by area) ---------- */
+const INJURIES = {
+  ankle: { label:"Ankle / foot", emoji:"🦶",
+    avoid:"Stay off your feet — no walking, running, jumping, or standing leg work. Cardio: a recumbent or seated bike, not the treadmill or elliptical.",
+    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown","3 x 12","lat pulldown machine gym","pulldown"],["Seated row machine","3 x 12","seated row machine gym","row"],["Shoulder press machine","3 x 10","shoulder press machine gym","shoulderpress"],["Pec deck (chest fly)","3 x 12","pec deck fly machine gym","pecdeck"],["Seated ab crunches","3 x 15","seated core crunch","crunch"]],
+    stretches:[0,1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,29] },
+  knee: { label:"Knee", emoji:"🦵",
+    avoid:"No squats, lunges, leg extensions, or jumping. No deep knee bends — keep it comfortable.",
+    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown","3 x 12","lat pulldown machine gym","pulldown"],["Seated row machine","3 x 12","seated row machine gym","row"],["Shoulder press machine","3 x 10","shoulder press machine gym","shoulderpress"],["Hip abduction machine","3 x 15","hip abduction machine gym","hipabd"],["Seated ab crunches","3 x 15","seated core crunch","crunch"]],
+    stretches:[0,1,3,4,5,6,7,8,9,10,13,14,16,29] },
+  hip: { label:"Hip", emoji:"🕺",
+    avoid:"No lunges, deep squats, or heavy hip flexion. Keep everything gentle and pain-free.",
+    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown","3 x 12","lat pulldown machine gym","pulldown"],["Seated row machine","3 x 12","seated row machine gym","row"],["Shoulder press machine","3 x 10","shoulder press machine gym","shoulderpress"],["Pec deck (chest fly)","3 x 12","pec deck fly machine gym","pecdeck"],["Lateral raises (light)","3 x 12","dumbbell lateral raise","latraise"]],
+    stretches:[0,1,3,4,5,6,7,8,9,10,13,29] },
+  back: { label:"Lower back", emoji:"🔙",
+    avoid:"No deadlifts, bent-over rows, sit-ups, or twisting under load. Keep your back supported and the weight light.",
+    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown (light)","3 x 12","lat pulldown machine gym","pulldown"],["Seated row (back supported)","3 x 12","chest supported row machine gym","row"],["Shoulder press machine","3 x 10","shoulder press machine gym","shoulderpress"],["Leg extension (light)","3 x 12","leg extension machine gym","legext"],["Glute bridge (gentle)","3 x 12","glute bridge exercise","glutebridge"]],
+    stretches:[15,18,14,4,5,29] },
+  shoulder: { label:"Shoulder", emoji:"💪",
+    avoid:"No overhead pressing, heavy chest press, or lateral raises. Keep your arms below shoulder height.",
+    work:[["Leg press machine","3 x 12","leg press machine gym","legpress"],["Leg extension machine","3 x 12","leg extension machine gym","legext"],["Seated leg curl","3 x 12","seated leg curl machine gym","legcurl"],["Hip abduction machine","3 x 15","hip abduction machine gym","hipabd"],["Glute bridge","3 x 15","glute bridge exercise","glutebridge"],["Seated ab crunches","3 x 15","seated core crunch","crunch"]],
+    stretches:[0,1,3,4,6,29] },
+  wrist: { label:"Wrist / hand", emoji:"✋",
+    avoid:"No planks, push-ups, or heavy gripping. Stick to lower-body machines that don't need a tight grip.",
+    work:[["Leg press machine","3 x 12","leg press machine gym","legpress"],["Leg extension machine","3 x 12","leg extension machine gym","legext"],["Seated leg curl","3 x 12","seated leg curl machine gym","legcurl"],["Hip abduction machine","3 x 15","hip abduction machine gym","hipabd"],["Glute bridge","3 x 15","glute bridge exercise","glutebridge"],["Seated ab crunches (arms crossed)","3 x 15","seated core crunch","crunch"]],
+    stretches:[9,10,11,12,0,4,29] }
+};
+let curInj=null;
+function buildInjButtons(){
+  const box=document.getElementById('injButtons'); box.innerHTML='';
+  Object.keys(INJURIES).forEach(id=>{
+    const inj=INJURIES[id];
+    const b=document.createElement('button');
+    b.className='choice c-injury';
+    b.innerHTML='<span class="emoji">'+inj.emoji+'</span><span>'+inj.label+'</span>';
+    b.onclick=()=>selectInjury(id);
+    box.appendChild(b);
+  });
+}
+function selectInjury(id){
+  curInj=id; const inj=INJURIES[id];
+  document.getElementById('injTitle').textContent=inj.label+' — safe workout';
+  document.getElementById('injAvoid').textContent=inj.avoid;
+  document.getElementById('injPicker').style.display='none';
+  document.getElementById('injDetail').style.display='block';
+  renderInjWork(); rollInjStretch(); window.scrollTo(0,0);
+}
+function injBack(){
+  curInj=null;
+  document.getElementById('injDetail').style.display='none';
+  document.getElementById('injPicker').style.display='block';
+  window.scrollTo(0,0);
+}
+function renderInjWork(){
+  dailyGet();
+  const work=INJURIES[curInj].work;
+  const key='injSets_'+curInj;
+  const state=JSON.parse(localStorage.getItem(key)||'{}');
+  const box=document.getElementById('injList'); box.innerHTML='';
+  work.forEach((e,i)=>{
+    const sets=setCount(e[1]); const checked=state[i]||[]; const allDone=checked.length>=sets;
+    const row=document.createElement('div'); row.className='ex'+(allDone?' done':'');
+    const photo="https://www.google.com/search?tbm=isch&q="+encodeURIComponent("planet fitness "+(e[2]||e[0]));
+    const k=e[3];
+    const icon='<g fill="none" stroke="#9c9078" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(ICON_M[k]||'')+'</g><g fill="none" stroke="#d4af5a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(ICON_P[k]||'')+'</g>';
+    let boxes=''; for(let s=0;s<sets;s++){ const on=checked.includes(s); boxes+='<button class="box'+(on?' on':'')+'" data-s="'+s+'">'+(on?'✓':'')+'</button>'; }
+    row.innerHTML='<div class="extop"><span class="left"><svg class="icn" viewBox="0 0 60 60">'+icon+'</svg>'+
+        '<span class="n">'+(allDone?'✓ ':'')+e[0]+'</span></span>'+
+        '<span class="right"><span class="r">'+e[1]+'</span>'+
+        '<a class="photo" href="'+photo+'" target="_blank" rel="noopener" title="See a real photo">📷</a></span></div>'+
+      '<div class="boxes">'+boxes+'</div>';
+    row.querySelector('.photo').onclick=(ev)=>ev.stopPropagation();
+    row.querySelectorAll('.box').forEach(b=>{ b.onclick=()=>{
+      const st=JSON.parse(localStorage.getItem(key)||'{}');
+      const arr=new Set(st[i]||[]); const s=+b.dataset.s;
+      arr.has(s)?arr.delete(s):arr.add(s);
+      st[i]=[...arr]; localStorage.setItem(key,JSON.stringify(st));
+      renderInjWork();
+    };});
+    box.appendChild(row);
+  });
+  const complete=work.every((e,i)=> ((state[i]||[]).length>=setCount(e[1])) );
+  setDailyFlag('injury', complete);
+}
+function rollInjStretch(){
+  const pool=[...INJURIES[curInj].stretches]; const pick=[];
+  for(let i=0;i<3 && pool.length;i++){ pick.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); }
+  document.getElementById('injStretch').innerHTML=pick.map(j=>{
+    const s=STRETCHES[j];
+    const icon='<g fill="none" stroke="#9c9078" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_M[j]||'')+'</g><g fill="none" stroke="#d4af5a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_P[j]||'')+'</g>';
+    return '<div class="stretch-item"><svg class="sicn" viewBox="0 0 60 60">'+icon+'</svg><div class="stext"><div class="sn">'+s[0]+'</div><div class="sd">'+s[1]+'</div></div></div>';
+  }).join('');
+}
+
 document.getElementById('vidPlay').onclick=()=>setDone('yoga');
 renderGym();
+buildInjButtons();
 renderSeries();
 shuffleDesk();
 makeTimer('t1_','stretch');
