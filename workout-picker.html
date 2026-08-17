@@ -73,6 +73,10 @@
     background:var(--card2);color:var(--gold);font-size:17px;font-weight:800;
     display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
   .box.on{background:var(--gold);border-color:var(--gold);color:#16263f;}
+  .wchip{background:var(--card2);border:1px solid var(--gold);color:var(--gold);
+    border-radius:12px;padding:7px 11px;font-size:13px;font-weight:600;cursor:pointer;
+    white-space:nowrap;margin-right:6px;}
+  .wchip:active{filter:brightness(1.15);}
   .ex.done .icn{opacity:.5;}
   .ex.done .n{color:var(--muted);}
   .pill-row{display:flex;gap:10px;margin:0 0 14px;}
@@ -400,6 +404,29 @@ function updateBadges(){
 const gymDays = Object.keys(GYM);
 let gymIdx = parseInt(localStorage.getItem('gymIdx')||'0',10);
 function setCount(reps){ const m=String(reps).match(/^\s*(\d+)\s*x/i); return m?parseInt(m[1],10):1; }
+
+/* ---------- weight memory (persists across days) ---------- */
+function usesWeight(name,reps){
+  if(/min|sec/i.test(reps)) return false;
+  if(/plank|crunch|glute bridge|bicycle/i.test(name)) return false;
+  return true;
+}
+function weightChip(name,reps){
+  if(!usesWeight(name,reps)) return '';
+  const w=JSON.parse(localStorage.getItem('weights')||'{}');
+  const cur=w[name];
+  const label = cur ? ('⚖ '+cur+' lb') : '⚖ add weight';
+  return '<button class="wchip">'+label+'</button>';
+}
+function promptWeight(name){
+  const w=JSON.parse(localStorage.getItem('weights')||'{}');
+  const val=prompt('Last weight for '+name+' (lb):', w[name]||'');
+  if(val===null) return;
+  const t=val.trim();
+  if(t==='') delete w[name]; else w[name]=t;
+  localStorage.setItem('weights',JSON.stringify(w));
+  renderGym(); if(curInj) renderInjWork();
+}
 function renderGym(){
   dailyGet();
   const name = gymDays[gymIdx % gymDays.length];
@@ -425,7 +452,7 @@ function renderGym(){
         '<span class="right"><span class="r">'+e[1]+'</span>'+
           '<a class="photo" href="'+photo+'" target="_blank" rel="noopener" title="See a real photo">📷</a></span>'+
       '</div>'+
-      '<div class="boxes">'+boxes+'</div>';
+      '<div class="boxes">'+weightChip(e[0],e[1])+boxes+'</div>';
     row.querySelector('.photo').onclick=(ev)=>ev.stopPropagation();
     row.querySelectorAll('.box').forEach(b=>{ b.onclick=()=>{
       const st=JSON.parse(localStorage.getItem('gymSets_'+name)||'{}');
@@ -434,6 +461,7 @@ function renderGym(){
       st[i]=[...arr]; localStorage.setItem('gymSets_'+name,JSON.stringify(st));
       renderGym();
     };});
+    const wc=row.querySelector('.wchip'); if(wc) wc.onclick=(ev)=>{ ev.stopPropagation(); promptWeight(e[0]); };
     box.appendChild(row);
   });
   const gymComplete = GYM[name].every((e,i)=> ((state[i]||[]).length>=setCount(e[1])) );
@@ -629,7 +657,7 @@ function renderInjWork(){
         '<span class="n">'+(allDone?'✓ ':'')+e[0]+'</span></span>'+
         '<span class="right"><span class="r">'+e[1]+'</span>'+
         '<a class="photo" href="'+photo+'" target="_blank" rel="noopener" title="See a real photo">📷</a></span></div>'+
-      '<div class="boxes">'+boxes+'</div>';
+      '<div class="boxes">'+weightChip(e[0],e[1])+boxes+'</div>';
     row.querySelector('.photo').onclick=(ev)=>ev.stopPropagation();
     row.querySelectorAll('.box').forEach(b=>{ b.onclick=()=>{
       const st=JSON.parse(localStorage.getItem(key)||'{}');
@@ -638,6 +666,7 @@ function renderInjWork(){
       st[i]=[...arr]; localStorage.setItem(key,JSON.stringify(st));
       renderInjWork();
     };});
+    const wc=row.querySelector('.wchip'); if(wc) wc.onclick=(ev)=>{ ev.stopPropagation(); promptWeight(e[0]); };
     box.appendChild(row);
   });
   const complete=work.every((e,i)=> ((state[i]||[]).length>=setCount(e[1])) );
