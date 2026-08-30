@@ -5,89 +5,103 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0f1f44">
+<meta name="theme-color" content="#3b2a49">
 <title>Move Today</title>
 <style>
   :root{
-    --bg:#0f1f44; --card:#17294f; --card2:#22386a;
-    --text:#f2ead9; --muted:#a99f8a;
-    --gym:#c9a24a; --yoga:#b07a4e; --rest:#7e8c5a;
-    --gold:#d4af5a;
-    --line:#2a3a52;
+    --card:rgba(255,255,255,0.09); --card2:rgba(255,255,255,0.14);
+    --text:#f4efe7; --muted:#dccfc6;
+    --gym:#4f8577; --yoga:#8a6a8c; --rest:#7f8a5a;
+    --gold:#e0c692;
+    --line:rgba(255,255,255,0.22);
+    --bg:#2e2136;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+  html,body{margin:0;padding:0;color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     min-height:100%;}
-  body{padding:24px 18px 48px;max-width:560px;margin:0 auto;}
-  h1{font-size:26px;margin:4px 0 2px;font-weight:700;}
-  .sub{color:var(--muted);font-size:15px;margin:0 0 22px;}
+  html{background:#3b2a49;}
+  body{padding:24px 18px 48px;max-width:560px;margin:0 auto;min-height:100vh;
+    background:linear-gradient(180deg,#3b2a49 0%,#5a3c4e 42%,#8a5343 80%,#a5664a 100%);
+    background-attachment:fixed;}
+  h1{font-size:22px;margin:4px 0 4px;font-weight:600;letter-spacing:3px;text-transform:uppercase;}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 24px;letter-spacing:.5px;}
   .screen{display:none;animation:fade .25s ease;}
   .screen.active{display:block;}
   @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 
-  .choice{position:relative;display:flex;align-items:center;gap:16px;width:100%;border:none;
-    border-radius:18px;padding:22px 20px;margin:0 0 14px;color:#fff;font-size:21px;
-    font-weight:650;text-align:left;cursor:pointer;}
-  .choice .emoji{font-size:30px;line-height:1;}
-  .choice small{display:block;font-weight:400;font-size:13px;opacity:.85;margin-top:3px;}
-  .badge{position:absolute;top:12px;right:14px;width:26px;height:26px;border-radius:50%;
-    background:rgba(255,255,255,.92);color:#16263f;font-size:16px;font-weight:800;
-    display:none;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.3);}
-  .c-gym{background:linear-gradient(135deg,#d8b15a,#b3893a);}
-  .c-yoga{background:linear-gradient(135deg,#c2914f,#9b6c30);}
-  .c-rest{background:linear-gradient(135deg,#a87a4c,#825a34);}
-  .c-stretch{background:linear-gradient(135deg,#c89a55,#9c7333);}
-  .c-desk{background:linear-gradient(135deg,#b08a4e,#876430);}
-  .c-injury{background:linear-gradient(135deg,#5f7690,#405670);}
+  .choice{position:relative;display:flex;align-items:center;gap:15px;width:100%;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:18px;margin:0 0 12px;color:var(--text);font-size:20px;
+    font-weight:600;text-align:left;cursor:pointer;letter-spacing:.2px;
+    backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);
+    box-shadow:0 6px 20px rgba(0,0,0,0.18);}
+  .choice .emoji{flex:none;width:46px;height:46px;
+    display:flex;align-items:center;justify-content:center;background:var(--card2);border-radius:12px;}
+  .choice .emoji svg{width:30px;height:30px;}
+  .hicon path,.hicon circle,.hicon rect{fill:none;stroke:#ebe3d6;stroke-width:2.6;
+    stroke-linecap:round;stroke-linejoin:round;}
+  .choice small{display:block;font-weight:400;font-size:14px;color:var(--muted);margin-top:4px;letter-spacing:0;}
+  .badge{position:absolute;top:14px;right:16px;width:24px;height:24px;border-radius:50%;
+    background:var(--gold);color:var(--bg);font-size:15px;font-weight:800;
+    display:none;align-items:center;justify-content:center;}
 
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
-    padding:18px;margin:0 0 14px;}
-  .card h2{margin:0 0 4px;font-size:20px;}
-  .card .meta{color:var(--muted);font-size:13px;margin:0 0 14px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:18px;margin:0 0 14px;backdrop-filter:blur(20px) saturate(1.4);
+    -webkit-backdrop-filter:blur(20px) saturate(1.4);box-shadow:0 6px 22px rgba(0,0,0,0.20);}
+  .card h2{margin:0 0 4px;font-size:23px;font-weight:600;letter-spacing:.3px;}
+  .card .meta{color:var(--muted);font-size:15px;margin:0 0 14px;}
 
-  .btn{display:block;width:100%;border:none;border-radius:14px;padding:16px;
-    font-size:17px;font-weight:600;color:#fff;cursor:pointer;margin:0 0 10px;
+  .btn{display:block;width:100%;border:none;border-radius:14px;padding:17px;
+    font-size:19px;font-weight:600;color:#fff;cursor:pointer;margin:0 0 10px;
     text-decoration:none;text-align:center;}
-  .btn.primary{background:var(--yoga);}
-  .btn.gym{background:var(--gym);}
-  .btn.play{background:#b5533a;}
+  .btn.primary{background:var(--gold);color:var(--bg);}
+  .btn.gym{background:var(--card2);color:var(--text);border:1px solid var(--line);}
+  .btn.play{background:#a8543a;}
   .btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line);}
   .btn:active{filter:brightness(.9);}
 
-  .back{background:none;border:none;color:var(--muted);font-size:15px;
-    padding:6px 0 14px;cursor:pointer;}
+  .back{background:none;border:none;color:var(--muted);font-size:17px;
+    padding:8px 0 14px;cursor:pointer;}
 
-  .ex{padding:11px 0;border-bottom:1px solid var(--line);font-size:16px;}
+  .ex{padding:13px 0;border-bottom:1px solid var(--line);font-size:20px;}
   .ex:last-child{border-bottom:none;}
   .extop{display:flex;justify-content:space-between;gap:12px;align-items:center;}
-  .ex .left{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
-  .ex .icn{width:42px;height:42px;flex:none;
-    background:var(--card2);border-radius:9px;padding:3px;}
-  .ex .n{padding-right:8px;}
-  .ex .right{display:flex;align-items:center;gap:14px;flex:none;}
-  .ex .r{color:var(--muted);font-size:14px;white-space:nowrap;}
-  .ex .photo{text-decoration:none;font-size:21px;line-height:1;}
-  .boxes{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 1px 54px;}
-  .box{width:30px;height:30px;border-radius:7px;border:1.5px solid var(--line);
-    background:var(--card2);color:var(--gold);font-size:17px;font-weight:800;
+  .ex .left{display:flex;align-items:center;gap:13px;flex:1;min-width:0;}
+  .ex .icn{width:56px;height:56px;flex:none;
+    background:var(--card2);border-radius:10px;padding:4px;}
+  .ex .n{padding-right:8px;font-weight:600;}
+  .ex .right{display:flex;align-items:center;gap:15px;flex:none;}
+  .ex .r{color:var(--muted);font-size:17px;white-space:nowrap;}
+  .ex .photo{text-decoration:none;font-size:26px;line-height:1;}
+  .boxes{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 1px 69px;}
+  .box{width:42px;height:42px;border-radius:9px;border:2px solid var(--line);
+    background:var(--card2);color:var(--gold);font-size:24px;font-weight:800;
     display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
-  .box.on{background:var(--gold);border-color:var(--gold);color:#16263f;}
+  .box.on{background:var(--gold);border-color:var(--gold);color:#2e2136;}
   .wchip{background:var(--card2);border:1px solid var(--gold);color:var(--gold);
-    border-radius:12px;padding:7px 11px;font-size:13px;font-weight:600;cursor:pointer;
+    border-radius:12px;padding:9px 14px;font-size:16px;font-weight:600;cursor:pointer;
     white-space:nowrap;margin-right:6px;}
   .wchip:active{filter:brightness(1.15);}
   .ex.done .icn{opacity:.5;}
   .ex.done .n{color:var(--muted);}
+  .ex .rm{color:var(--muted);text-decoration:none;font-size:20px;line-height:1;padding:0 2px;cursor:pointer;}
+  .addrow{display:flex;align-items:center;gap:12px;width:100%;background:var(--card2);
+    border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin:0 0 8px;
+    color:var(--text);font-size:18px;cursor:pointer;text-align:left;}
+  .addrow .icn{width:44px;height:44px;flex:none;background:rgba(255,255,255,0.10);border-radius:9px;padding:3px;}
+  .addrow .n{flex:1;min-width:0;}
+  .addrow .r{color:var(--muted);font-size:15px;white-space:nowrap;}
+  .addrow .plus{color:var(--gold);font-size:22px;font-weight:700;margin-left:6px;}
   .pill-row{display:flex;gap:10px;margin:0 0 14px;}
   .pill{flex:1;background:var(--card2);border:1px solid var(--line);color:var(--text);
-    border-radius:12px;padding:13px 0;font-size:16px;font-weight:600;cursor:pointer;text-align:center;}
-  .pill.sel{background:var(--yoga);border-color:var(--yoga);color:#fff;}
+    border-radius:12px;padding:16px 0;font-size:19px;font-weight:600;cursor:pointer;text-align:center;}
+  .pill.sel{background:var(--gold);border-color:var(--gold);color:var(--bg);}
 
   .vid{background:var(--card2);border-radius:14px;padding:16px;margin:0 0 14px;text-align:center;}
-  .vid .t{font-size:18px;font-weight:650;margin:0 0 4px;}
-  .vid .d{color:var(--muted);font-size:14px;}
-  .note{color:var(--muted);font-size:13px;line-height:1.5;margin:14px 2px 0;}
+  .vid .t{font-size:21px;font-weight:650;margin:0 0 4px;}
+  .vid .d{color:var(--muted);font-size:16px;}
+  .note{color:var(--muted);font-size:15px;line-height:1.5;margin:14px 2px 0;}
   .day{font-size:42px;font-weight:800;text-align:center;margin:6px 0 2px;color:var(--gold);}
   .clock{font-size:58px;font-weight:800;text-align:center;margin:10px 0 14px;
     color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:1px;}
@@ -95,12 +109,12 @@
   @keyframes flash{50%{color:#e07a5f;transform:scale(1.06);}}
   .stretch-item{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
   .stretch-item:last-of-type{border-bottom:none;}
-  .sicn{width:50px;height:50px;flex:none;background:var(--card2);border-radius:9px;padding:3px;}
+  .sicn{width:60px;height:60px;flex:none;background:var(--card2);border-radius:10px;padding:4px;}
   .stretch-item .stext{min-width:0;}
-  .stretch-item .sn{font-weight:650;font-size:17px;}
-  .stretch-item .sd{color:var(--muted);font-size:14px;margin-top:3px;line-height:1.45;}
+  .stretch-item .sn{font-weight:650;font-size:20px;}
+  .stretch-item .sd{color:var(--muted);font-size:16px;margin-top:3px;line-height:1.45;}
   .restbig{font-size:30px;text-align:center;margin:18px 0;line-height:1.4;}
-  .divider{border:none;border-top:2px solid var(--gold);margin:8px 2px 18px;opacity:.9;}
+  .divider{border:none;border-top:2px solid #b06a45;margin:8px 2px 18px;opacity:.95;}
 </style>
 </head>
 <body>
@@ -110,33 +124,33 @@
   <h1>Move Today</h1>
   <p class="sub">What are we doing?</p>
   <button class="choice c-stretch" onclick="show('timer')">
-    <span class="emoji">⏱️</span>
+    <span class="emoji"><svg class="hicon" viewBox="0 0 60 60"><circle cx="30" cy="35" r="15"/><path d="M30 35 V26"/><path d="M25 11 h10"/><path d="M30 11 v9"/><path d="M43 23 l3 -3"/></svg></span>
     <span>Stretch timer<small>3, 5 or 8 minutes</small></span>
     <span class="badge" id="b_stretch">✓</span>
   </button>
   <button class="choice c-desk" onclick="show('desk');shuffleDesk()">
-    <span class="emoji">🪑</span>
+    <span class="emoji"><svg class="hicon" viewBox="0 0 60 60"><rect x="20" y="30" width="17" height="4" rx="1"/><path d="M35 30 V15"/><path d="M22 34 V45"/><path d="M35 34 V45"/><path d="M17 45 h22"/></svg></span>
     <span>Desk stretches<small>3 quick picks for desk-sitters</small></span>
     <span class="badge" id="b_desk">✓</span>
   </button>
   <hr class="divider">
   <button class="choice c-gym" onclick="show('gym')">
-    <span class="emoji">🏋️‍♀️</span>
+    <span class="emoji"><svg class="hicon" viewBox="0 0 60 60"><path d="M14 30 h32"/><path d="M15 23 v14 M20 20 v20"/><path d="M45 23 v14 M40 20 v20"/></svg></span>
     <span>Gym workout<small>Hometown Fitness — full-body day</small></span>
     <span class="badge" id="b_gym">✓</span>
   </button>
   <button class="choice c-yoga" onclick="show('yoga')">
-    <span class="emoji">🧘‍♀️</span>
+    <span class="emoji"><svg class="hicon" viewBox="0 0 60 60"><circle cx="30" cy="17" r="4"/><path d="M30 21 V33"/><path d="M30 33 C 17 33 18 45 27 44 M30 33 C 43 33 42 45 33 44"/><path d="M30 26 L19 35 M30 26 L41 35"/></svg></span>
     <span>Yoga at home<small>Series day or a surprise pick</small></span>
     <span class="badge" id="b_yoga">✓</span>
   </button>
   <button class="choice c-rest" onclick="show('rest')">
-    <span class="emoji">😌</span>
+    <span class="emoji"><svg class="hicon" viewBox="0 0 60 60"><path d="M39 16 A 16 16 0 1 0 39 48 A 13 13 0 1 1 39 16 Z"/></svg></span>
     <span>Rest day<small>Recover. You earned it.</small></span>
     <span class="badge" id="b_rest">✓</span>
   </button>
   <button class="choice c-injury" onclick="show('injury');injBack()">
-    <span class="emoji">🤕</span>
+    <span class="emoji"><svg class="hicon" viewBox="0 0 60 60"><circle cx="30" cy="30" r="15"/><path d="M30 22 V38 M22 30 H38"/></svg></span>
     <span>Injury workaround<small>Safe workouts by injured area</small></span>
     <span class="badge" id="b_injury">✓</span>
   </button>
@@ -146,13 +160,20 @@
 <section id="gym" class="screen">
   <button class="back" onclick="show('home')">‹ Back</button>
   <div class="card">
-    <h2 id="gymTitle">Full-Body A</h2>
+    <h2 id="gymTitle">Backside Builder</h2>
     <p class="meta">Check off each set as you finish. Tap 📷 for a real photo.</p>
     <div id="gymList"></div>
   </div>
+  <button class="btn primary" onclick="completeDay()">✓ Mark day complete</button>
+  <button class="btn ghost" onclick="toggleAddPanel()">＋ Add a station</button>
+  <div id="addPanel" class="card" style="display:none">
+    <h2>Add a station</h2>
+    <p class="meta">Tap any exercise to add it to today.</p>
+    <div id="addList"></div>
+  </div>
   <button class="btn gym" onclick="rotateGym()">Give me a different day</button>
   <button class="btn ghost" onclick="resetGym()">Reset checkmarks</button>
-  <p class="note">Want to change these workouts? Just tell Claude what to swap in — this is a starter set built for short, full-body sessions you can do on any gym day.</p>
+  <p class="note">Want to change these workouts? Just tell Claude what to swap in.</p>
 </section>
 
 <!-- ====================== YOGA ====================== -->
@@ -298,7 +319,10 @@ const ICON_M = { // machine (gray)
   gobletsquat:'<path d="M34 21 v8"/><path d="M31 21 h6 M31 29 h6"/>',
   rdl:'<path d="M23 42 h6"/><path d="M23 40 v4 M29 40 v4"/>',
   lunge:'<path d="M18 35 h6"/><path d="M18 33 v4 M24 33 v4"/><path d="M30 35 h6"/><path d="M30 33 v4 M36 33 v4"/>',
-  curl:'<path d="M18 22 h6"/><path d="M18 20 v4 M24 20 v4"/><path d="M24 22 h6"/><path d="M24 20 v4 M30 20 v4"/>'
+  curl:'<path d="M18 22 h6"/><path d="M18 20 v4 M24 20 v4"/><path d="M24 22 h6"/><path d="M24 20 v4 M30 20 v4"/>',
+  abmachine:'<path d="M10 54h32"/><rect x="12" y="46" width="13" height="4"/><path d="M31 50 V16"/><path d="M31 18 h-11"/><rect x="40" y="34" width="6" height="16"/><path d="M40 40 h6"/>',
+  legpresslying:'<path d="M6 52h24"/><path d="M8 48 L24 43"/><path d="M31 22 L45 30"/><path d="M33 18 L47 26"/>',
+  gluteglide:'<path d="M8 52h40"/><path d="M22 40 V52"/><rect x="16" y="30" width="12" height="4"/>'
 };
 const ICON_P = { // person (blue)
   treadmill:'<circle cx="18" cy="26" r="3"/><path d="M18 29 L20 40"/><path d="M20 40 L26 48"/><path d="M20 40 L14 47"/><path d="M19 32 L24 34"/><path d="M19 32 L14 30"/>',
@@ -320,7 +344,10 @@ const ICON_P = { // person (blue)
   gobletsquat:'<circle cx="27" cy="13" r="3"/><path d="M27 16 V26"/><path d="M27 26 L35 32 L35 48"/><path d="M27 26 L19 32 L19 48"/><path d="M27 20 L33 25"/>',
   rdl:'<circle cx="16" cy="21" r="3"/><path d="M18 22 L33 28"/><path d="M33 28 L35 50"/><path d="M33 28 L30 50"/><path d="M26 25 V40"/>',
   lunge:'<circle cx="27" cy="12" r="3"/><path d="M27 15 V30"/><path d="M27 30 L36 40 L36 50"/><path d="M27 30 L18 43 L15 50"/><path d="M23 20 L21 34"/><path d="M31 20 L33 34"/>',
-  curl:'<circle cx="24" cy="12" r="3"/><path d="M24 15 V33"/><path d="M24 33 L20 48"/><path d="M24 33 L28 48"/><path d="M24 20 L19 30 L21 22"/><path d="M24 20 L29 30 L27 22"/>'
+  curl:'<circle cx="24" cy="12" r="3"/><path d="M24 15 V33"/><path d="M24 33 L20 48"/><path d="M24 33 L28 48"/><path d="M24 20 L19 30 L21 22"/><path d="M24 20 L29 30 L27 22"/>',
+  abmachine:'<circle cx="22" cy="22" r="3"/><path d="M22 25 Q24 36 27 43"/><path d="M27 43 h8"/><path d="M35 43 V52"/><path d="M23 26 L20 18"/>',
+  legpresslying:'<circle cx="12" cy="41" r="3"/><path d="M14 42 L25 40"/><path d="M25 40 L30 30"/><path d="M30 30 L40 25"/><path d="M25 40 L31 34"/>',
+  gluteglide:'<circle cx="14" cy="26" r="3"/><path d="M16 28 L30 32"/><path d="M30 32 L30 48"/><path d="M30 32 L44 24"/><path d="M18 29 L26 33"/>'
 };
 
 /* =========================================================
@@ -329,32 +356,41 @@ const ICON_P = { // person (blue)
    Tap the row to check off. Tap 📷 for a real photo.
    ========================================================= */
 const GYM = {
-  "Full-Body A": [
+  "Backside Builder": [
     ["Treadmill warm-up", "5 min", "treadmill warm up", "treadmill"],
-    ["Dumbbell goblet squat", "3 x 10", "dumbbell goblet squat", "gobletsquat"],
-    ["Dumbbell bench press", "3 x 10", "dumbbell bench press", "chestpress"],
+    ["Lying leg press", "3 x 10", "lying leg press machine", "legpresslying"],
+    ["Dumbbell Romanian deadlift", "3 x 10", "dumbbell romanian deadlift", "rdl"],
+    ["Glute glide", "3 x 12", "glute glide machine", "gluteglide"],
     ["Lat pulldown", "3 x 12", "lat pulldown machine", "pulldown"],
-    ["Dumbbell shoulder press", "3 x 10", "seated dumbbell shoulder press", "shoulderpress"],
-    ["Plank", "3 x 30 sec", "plank exercise form", "plank"],
+    ["Ab crunch machine", "3 x 15", "seated ab crunch machine", "abmachine"],
     ["Treadmill / incline walk", "10 min", "treadmill incline walk", "treadmill"]
   ],
-  "Full-Body B": [
+  "Legs & Chest": [
     ["Treadmill warm-up", "5 min", "treadmill warm up", "treadmill"],
-    ["Dumbbell Romanian deadlift", "3 x 10", "dumbbell romanian deadlift", "rdl"],
-    ["One-arm dumbbell row", "3 x 10 / arm", "one arm dumbbell row bench", "row"],
-    ["Incline dumbbell press", "3 x 10", "incline dumbbell bench press", "chestpress"],
-    ["Dumbbell lateral raises", "3 x 12", "dumbbell lateral raise", "latraise"],
-    ["Bicycle crunches", "3 x 20", "bicycle crunches exercise form", "crunch"],
+    ["15° leg press machine", "3 x 12", "15 degree leg press machine", "legpress"],
+    ["Chest press machine", "3 x 10", "chest press machine gym", "chestpress"],
+    ["Glute glide", "3 x 12", "glute glide machine", "gluteglide"],
+    ["Seated cable row", "3 x 12", "seated cable row machine", "row"],
+    ["Ab crunch machine", "3 x 15", "seated ab crunch machine", "abmachine"],
     ["Stairmaster / bike", "10 min", "stairmaster stationary bike", "stairs"]
   ],
-  "Full-Body C": [
+  "Back & Arms": [
     ["Treadmill warm-up", "5 min", "treadmill warm up", "treadmill"],
-    ["Dumbbell walking lunges", "3 x 10 / leg", "dumbbell walking lunge", "lunge"],
+    ["Glute glide", "3 x 12", "glute glide machine", "gluteglide"],
+    ["Lat pulldown", "3 x 12", "lat pulldown machine", "pulldown"],
     ["Seated cable row", "3 x 12", "seated cable row machine", "row"],
-    ["Dumbbell chest press (flat)", "3 x 10", "flat dumbbell bench press", "chestpress"],
     ["Dumbbell biceps curl", "3 x 12", "dumbbell biceps curl", "curl"],
-    ["Glute bridge / hip thrust", "3 x 12", "dumbbell hip thrust bench", "glutebridge"],
+    ["Ab crunch machine", "3 x 15", "seated ab crunch machine", "abmachine"],
     ["Elliptical", "10 min", "elliptical machine", "elliptical"]
+  ],
+  "Shoulders & Glutes": [
+    ["Treadmill warm-up", "5 min", "treadmill warm up", "treadmill"],
+    ["Lying leg press", "3 x 10", "lying leg press machine", "legpresslying"],
+    ["Chest press machine", "3 x 10", "chest press machine gym", "chestpress"],
+    ["Dumbbell lateral raises", "3 x 12", "dumbbell lateral raise", "latraise"],
+    ["Glute glide", "3 x 12", "glute glide machine", "gluteglide"],
+    ["Ab crunch machine", "3 x 15", "seated ab crunch machine", "abmachine"],
+    ["Treadmill / incline walk", "10 min", "treadmill incline walk", "treadmill"]
   ]
 };
 
@@ -435,48 +471,86 @@ function promptWeight(name){
   localStorage.setItem('weights',JSON.stringify(w));
   renderGym(); if(curInj) renderInjWork();
 }
+function getAdded(name){ return JSON.parse(localStorage.getItem('gymAdded_'+name)||'[]'); }
+function allExercises(){ const map={}; Object.values(GYM).forEach(list=>list.forEach(e=>{ if(!map[e[0]]) map[e[0]]=e; })); return Object.values(map); }
 function renderGym(){
   dailyGet();
   const name = gymDays[gymIdx % gymDays.length];
   document.getElementById('gymTitle').textContent = name;
+  const base = GYM[name], added = getAdded(name), list = base.concat(added);
   const state = JSON.parse(localStorage.getItem('gymSets_'+name)||'{}');
   const box = document.getElementById('gymList');
   box.innerHTML='';
-  GYM[name].forEach((e,i)=>{
+  list.forEach((e,i)=>{
+    const nm=e[0], isAdded=i>=base.length;
     const sets=setCount(e[1]);
-    const checked=state[i]||[];
+    const checked=state[nm]||[];
     const allDone=checked.length>=sets;
     const row=document.createElement('div');
     row.className='ex'+(allDone?' done':'');
     const photo="https://www.google.com/search?tbm=isch&q="+encodeURIComponent(e[2]||e[0]);
     const k=e[3];
-    const icon='<g fill="none" stroke="#9c9078" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(ICON_M[k]||'')+'</g>'+
-               '<g fill="none" stroke="#d4af5a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(ICON_P[k]||'')+'</g>';
+    const icon='<g fill="none" stroke="#ebe3d6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(ICON_M[k]||'')+'</g>'+
+               '<g fill="none" stroke="#ebe3d6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(ICON_P[k]||'')+'</g>';
     let boxes='';
     for(let s=0;s<sets;s++){ const on=checked.includes(s); boxes+='<button class="box'+(on?' on':'')+'" data-s="'+s+'">'+(on?'✓':'')+'</button>'; }
     row.innerHTML='<div class="extop">'+
         '<span class="left"><svg class="icn" viewBox="0 0 60 60">'+icon+'</svg>'+
-          '<span class="n">'+(allDone?'✓ ':'')+e[0]+'</span></span>'+
+          '<span class="n">'+(allDone?'✓ ':'')+nm+'</span></span>'+
         '<span class="right"><span class="r">'+e[1]+'</span>'+
+          (isAdded?'<a class="rm" title="Remove">✕</a>':'')+
           '<a class="photo" href="'+photo+'" target="_blank" rel="noopener" title="See a real photo">📷</a></span>'+
       '</div>'+
-      '<div class="boxes">'+weightChip(e[0],e[1])+boxes+'</div>';
+      '<div class="boxes">'+weightChip(nm,e[1])+boxes+'</div>';
     row.querySelector('.photo').onclick=(ev)=>ev.stopPropagation();
     row.querySelectorAll('.box').forEach(b=>{ b.onclick=()=>{
       const st=JSON.parse(localStorage.getItem('gymSets_'+name)||'{}');
-      const arr=new Set(st[i]||[]); const s=+b.dataset.s;
+      const arr=new Set(st[nm]||[]); const s=+b.dataset.s;
       arr.has(s)?arr.delete(s):arr.add(s);
-      st[i]=[...arr]; localStorage.setItem('gymSets_'+name,JSON.stringify(st));
+      st[nm]=[...arr]; localStorage.setItem('gymSets_'+name,JSON.stringify(st));
       renderGym();
     };});
-    const wc=row.querySelector('.wchip'); if(wc) wc.onclick=(ev)=>{ ev.stopPropagation(); promptWeight(e[0]); };
+    const wc=row.querySelector('.wchip'); if(wc) wc.onclick=(ev)=>{ ev.stopPropagation(); promptWeight(nm); };
+    const rm=row.querySelector('.rm'); if(rm) rm.onclick=(ev)=>{ ev.stopPropagation();
+      const a=getAdded(name).filter(x=>x[0]!==nm); localStorage.setItem('gymAdded_'+name,JSON.stringify(a));
+      const st=JSON.parse(localStorage.getItem('gymSets_'+name)||'{}'); delete st[nm]; localStorage.setItem('gymSets_'+name,JSON.stringify(st));
+      renderGym();
+    };
     box.appendChild(row);
   });
-  const gymComplete = GYM[name].every((e,i)=> ((state[i]||[]).length>=setCount(e[1])) );
-  setDailyFlag('gym', gymComplete);
+  const complete = list.length>0 && list.every(e=> ((state[e[0]]||[]).length>=setCount(e[1])) );
+  setDailyFlag('gym', complete || !!dailyGet().gymManual);
 }
-function rotateGym(){ gymIdx=(gymIdx+1)%gymDays.length; localStorage.setItem('gymIdx',gymIdx); renderGym(); }
-function resetGym(){ localStorage.removeItem('gymSets_'+gymDays[gymIdx%gymDays.length]); renderGym(); }
+function rotateGym(){ gymIdx=(gymIdx+1)%gymDays.length; localStorage.setItem('gymIdx',gymIdx); document.getElementById('addPanel').style.display='none'; renderGym(); }
+function resetGym(){
+  const name=gymDays[gymIdx%gymDays.length];
+  localStorage.removeItem('gymSets_'+name);
+  const d=dailyGet(); d.gymManual=false; localStorage.setItem('daily',JSON.stringify(d));
+  renderGym();
+}
+function completeDay(){
+  const d=dailyGet(); d.gymManual=true; d.gym=true; localStorage.setItem('daily',JSON.stringify(d));
+  updateBadges(); show('home');
+}
+function toggleAddPanel(){
+  const p=document.getElementById('addPanel');
+  if(p.style.display==='none'){ buildAddList(); p.style.display='block'; } else { p.style.display='none'; }
+}
+function buildAddList(){
+  const name=gymDays[gymIdx%gymDays.length];
+  const current=new Set([...GYM[name].map(e=>e[0]), ...getAdded(name).map(e=>e[0])]);
+  const box=document.getElementById('addList'); box.innerHTML='';
+  const avail=allExercises().filter(e=>!current.has(e[0]));
+  if(!avail.length){ box.innerHTML='<p class="meta">Every station is already in this day.</p>'; return; }
+  avail.forEach(e=>{
+    const k=e[3];
+    const icon='<g fill="none" stroke="#ebe3d6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(ICON_M[k]||'')+'</g><g fill="none" stroke="#ebe3d6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(ICON_P[k]||'')+'</g>';
+    const row=document.createElement('button'); row.className='addrow';
+    row.innerHTML='<svg class="icn" viewBox="0 0 60 60">'+icon+'</svg><span class="n">'+e[0]+'</span><span class="r">'+e[1]+'</span><span class="plus">＋</span>';
+    row.onclick=()=>{ const a=getAdded(name); a.push(e); localStorage.setItem('gymAdded_'+name,JSON.stringify(a)); buildAddList(); renderGym(); };
+    box.appendChild(row);
+  });
+}
 
 /* ---------- yoga series ---------- */
 let day = parseInt(localStorage.getItem('seriesDay')||'3',10);
@@ -553,7 +627,7 @@ function shuffleDesk(){
   for(let i=0;i<3 && idx.length;i++){ pick.push(idx.splice(Math.floor(Math.random()*idx.length),1)[0]); }
   document.getElementById('deskList').innerHTML = pick.map(j=>{
     const s=STRETCHES[j];
-    const icon='<g fill="none" stroke="#9c9078" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_M[j]||'')+'</g><g fill="none" stroke="#d4af5a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_P[j]||'')+'</g>';
+    const icon='<g fill="none" stroke="#ebe3d6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_M[j]||'')+'</g><g fill="none" stroke="#ebe3d6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_P[j]||'')+'</g>';
     return '<div class="stretch-item"><svg class="sicn" viewBox="0 0 60 60">'+icon+'</svg><div class="stext"><div class="sn">'+s[0]+'</div><div class="sd">'+s[1]+'</div></div></div>';
   }).join('');
 }
@@ -599,27 +673,27 @@ function makeTimer(p,cat){
 const INJURIES = {
   ankle: { label:"Ankle / foot", emoji:"🦶",
     avoid:"Stay off your feet — no walking, running, jumping, or standing leg work. Cardio: a recumbent or seated bike, not the treadmill or elliptical.",
-    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown","3 x 12","lat pulldown machine gym","pulldown"],["Seated row machine","3 x 12","seated row machine gym","row"],["Shoulder press machine","3 x 10","shoulder press machine gym","shoulderpress"],["Pec deck (chest fly)","3 x 12","pec deck fly machine gym","pecdeck"],["Seated ab crunches","3 x 15","seated core crunch","crunch"]],
+    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown","3 x 12","lat pulldown machine","pulldown"],["Seated cable row","3 x 12","seated cable row machine","row"],["Dumbbell shoulder press","3 x 10","seated dumbbell shoulder press","shoulderpress"],["Dumbbell lateral raises","3 x 12","dumbbell lateral raise","latraise"],["Ab crunch machine","3 x 15","seated ab crunch machine","abmachine"]],
     stretches:[0,1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,29] },
   knee: { label:"Knee", emoji:"🦵",
-    avoid:"No squats, lunges, leg extensions, or jumping. No deep knee bends — keep it comfortable.",
-    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown","3 x 12","lat pulldown machine gym","pulldown"],["Seated row machine","3 x 12","seated row machine gym","row"],["Shoulder press machine","3 x 10","shoulder press machine gym","shoulderpress"],["Hip abduction machine","3 x 15","hip abduction machine gym","hipabd"],["Seated ab crunches","3 x 15","seated core crunch","crunch"]],
+    avoid:"No squats, leg press, jumping, or deep knee bends. Keep it upper-body while the knee settles.",
+    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown","3 x 12","lat pulldown machine","pulldown"],["Seated cable row","3 x 12","seated cable row machine","row"],["Dumbbell shoulder press","3 x 10","seated dumbbell shoulder press","shoulderpress"],["Dumbbell biceps curl","3 x 12","dumbbell biceps curl","curl"],["Ab crunch machine","3 x 15","seated ab crunch machine","abmachine"]],
     stretches:[0,1,3,4,5,6,7,8,9,10,13,14,16,29] },
   hip: { label:"Hip", emoji:"🕺",
-    avoid:"No lunges, deep squats, or heavy hip flexion. Keep everything gentle and pain-free.",
-    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown","3 x 12","lat pulldown machine gym","pulldown"],["Seated row machine","3 x 12","seated row machine gym","row"],["Shoulder press machine","3 x 10","shoulder press machine gym","shoulderpress"],["Pec deck (chest fly)","3 x 12","pec deck fly machine gym","pecdeck"],["Lateral raises (light)","3 x 12","dumbbell lateral raise","latraise"]],
+    avoid:"No lunges, deep squats, glute glide, or heavy hip work. Keep everything upper-body and gentle.",
+    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown","3 x 12","lat pulldown machine","pulldown"],["Seated cable row","3 x 12","seated cable row machine","row"],["Dumbbell shoulder press","3 x 10","seated dumbbell shoulder press","shoulderpress"],["Dumbbell lateral raises","3 x 12","dumbbell lateral raise","latraise"],["Dumbbell biceps curl","3 x 12","dumbbell biceps curl","curl"]],
     stretches:[0,1,3,4,5,6,7,8,9,10,13,29] },
   back: { label:"Lower back", emoji:"🔙",
     avoid:"No deadlifts, bent-over rows, sit-ups, or twisting under load. Keep your back supported and the weight light.",
-    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown (light)","3 x 12","lat pulldown machine gym","pulldown"],["Seated row (back supported)","3 x 12","chest supported row machine gym","row"],["Shoulder press machine","3 x 10","shoulder press machine gym","shoulderpress"],["Leg extension (light)","3 x 12","leg extension machine gym","legext"],["Glute bridge (gentle)","3 x 12","glute bridge exercise","glutebridge"]],
+    work:[["Chest press machine","3 x 10","chest press machine gym","chestpress"],["Lat pulldown (light)","3 x 12","lat pulldown machine","pulldown"],["Seated cable row (light)","3 x 12","seated cable row machine","row"],["Dumbbell shoulder press","3 x 10","seated dumbbell shoulder press","shoulderpress"],["15° leg press (light)","3 x 12","15 degree leg press machine","legpress"],["Glute bridge (gentle)","3 x 12","glute bridge exercise","glutebridge"]],
     stretches:[15,18,14,4,5,29] },
   shoulder: { label:"Shoulder", emoji:"💪",
-    avoid:"No overhead pressing, heavy chest press, or lateral raises. Keep your arms below shoulder height.",
-    work:[["Leg press machine","3 x 12","leg press machine gym","legpress"],["Leg extension machine","3 x 12","leg extension machine gym","legext"],["Seated leg curl","3 x 12","seated leg curl machine gym","legcurl"],["Hip abduction machine","3 x 15","hip abduction machine gym","hipabd"],["Glute bridge","3 x 15","glute bridge exercise","glutebridge"],["Seated ab crunches","3 x 15","seated core crunch","crunch"]],
+    avoid:"No overhead pressing, heavy chest press, or lateral raises. Keep your arms below shoulder height — lower body and core instead.",
+    work:[["15° leg press machine","3 x 12","15 degree leg press machine","legpress"],["Glute glide","3 x 12","glute glide machine","gluteglide"],["Glute bridge","3 x 15","glute bridge exercise","glutebridge"],["Ab crunch machine","3 x 15","seated ab crunch machine","abmachine"]],
     stretches:[0,1,3,4,6,29] },
   wrist: { label:"Wrist / hand", emoji:"✋",
     avoid:"No planks, push-ups, or heavy gripping. Stick to lower-body machines that don't need a tight grip.",
-    work:[["Leg press machine","3 x 12","leg press machine gym","legpress"],["Leg extension machine","3 x 12","leg extension machine gym","legext"],["Seated leg curl","3 x 12","seated leg curl machine gym","legcurl"],["Hip abduction machine","3 x 15","hip abduction machine gym","hipabd"],["Glute bridge","3 x 15","glute bridge exercise","glutebridge"],["Seated ab crunches (arms crossed)","3 x 15","seated core crunch","crunch"]],
+    work:[["15° leg press machine","3 x 12","15 degree leg press machine","legpress"],["Glute glide","3 x 12","glute glide machine","gluteglide"],["Glute bridge","3 x 15","glute bridge exercise","glutebridge"],["Ab crunch machine (arms crossed)","3 x 15","seated ab crunch machine","abmachine"]],
     stretches:[9,10,11,12,0,4,29] }
 };
 let curInj=null;
@@ -659,7 +733,7 @@ function renderInjWork(){
     const row=document.createElement('div'); row.className='ex'+(allDone?' done':'');
     const photo="https://www.google.com/search?tbm=isch&q="+encodeURIComponent(e[2]||e[0]);
     const k=e[3];
-    const icon='<g fill="none" stroke="#9c9078" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(ICON_M[k]||'')+'</g><g fill="none" stroke="#d4af5a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(ICON_P[k]||'')+'</g>';
+    const icon='<g fill="none" stroke="#ebe3d6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(ICON_M[k]||'')+'</g><g fill="none" stroke="#ebe3d6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(ICON_P[k]||'')+'</g>';
     let boxes=''; for(let s=0;s<sets;s++){ const on=checked.includes(s); boxes+='<button class="box'+(on?' on':'')+'" data-s="'+s+'">'+(on?'✓':'')+'</button>'; }
     row.innerHTML='<div class="extop"><span class="left"><svg class="icn" viewBox="0 0 60 60">'+icon+'</svg>'+
         '<span class="n">'+(allDone?'✓ ':'')+e[0]+'</span></span>'+
@@ -685,7 +759,7 @@ function rollInjStretch(){
   for(let i=0;i<3 && pool.length;i++){ pick.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); }
   document.getElementById('injStretch').innerHTML=pick.map(j=>{
     const s=STRETCHES[j];
-    const icon='<g fill="none" stroke="#9c9078" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_M[j]||'')+'</g><g fill="none" stroke="#d4af5a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_P[j]||'')+'</g>';
+    const icon='<g fill="none" stroke="#ebe3d6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_M[j]||'')+'</g><g fill="none" stroke="#ebe3d6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+(STRETCH_P[j]||'')+'</g>';
     return '<div class="stretch-item"><svg class="sicn" viewBox="0 0 60 60">'+icon+'</svg><div class="stext"><div class="sn">'+s[0]+'</div><div class="sd">'+s[1]+'</div></div></div>';
   }).join('');
 }
