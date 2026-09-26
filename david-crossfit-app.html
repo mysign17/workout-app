@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#101215">
+<title>WOD</title>
+<style>
+  :root{
+    --bg:#101215; --card:#1b1e24; --card2:#262a32;
+    --text:#f3f4f6; --muted:#98a0ac;
+    --accent:#e2492c; --accent2:#e0b13a;
+    --line:#2f343d; --ok:#4f8f5a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100%;}
+  body{padding:22px 16px 48px;max-width:600px;margin:0 auto;}
+  h1{font-size:30px;margin:0;font-weight:800;letter-spacing:4px;text-transform:uppercase;}
+  h1 span{color:var(--accent);}
+  .sub{color:var(--muted);font-size:13px;margin:2px 0 20px;letter-spacing:2px;text-transform:uppercase;}
+  .screen{display:none;animation:fade .2s ease;}
+  .screen.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  .choice{position:relative;display:flex;align-items:center;gap:16px;width:100%;
+    background:var(--card);border:1px solid var(--line);border-left:5px solid var(--accent);
+    border-radius:10px;padding:20px 18px;margin:0 0 13px;color:var(--text);font-size:21px;
+    font-weight:700;text-align:left;cursor:pointer;letter-spacing:1px;text-transform:uppercase;}
+  .choice small{display:block;font-weight:400;font-size:13px;color:var(--muted);margin-top:4px;
+    letter-spacing:.5px;text-transform:none;}
+  .choice .ic{flex:none;width:46px;height:46px;display:flex;align-items:center;justify-content:center;}
+  .ic svg{width:34px;height:34px;}
+  .ic path,.ic circle,.ic rect,.ic line{fill:none;stroke:var(--accent);stroke-width:2.4;
+    stroke-linecap:round;stroke-linejoin:round;}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin:0 0 14px;}
+  .card h2{margin:0 0 3px;font-size:22px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+  .card h2 .tag{font-size:12px;color:var(--bg);background:var(--accent);padding:3px 8px;
+    border-radius:5px;vertical-align:middle;margin-left:8px;letter-spacing:1px;}
+  .card .meta{color:var(--muted);font-size:14px;margin:0 0 12px;}
+  .block{margin:0 0 16px;}
+  .block .lbl{font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+    color:var(--accent2);border-bottom:1px solid var(--line);padding-bottom:5px;margin-bottom:8px;}
+  .block .body{font-size:18px;line-height:1.6;white-space:pre-line;}
+
+  .btn{display:block;width:100%;border:none;border-radius:9px;padding:16px;font-size:18px;
+    font-weight:700;color:#fff;cursor:pointer;margin:0 0 10px;text-decoration:none;text-align:center;
+    letter-spacing:1px;text-transform:uppercase;}
+  .btn.primary{background:var(--accent);}
+  .btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line);}
+  .btn:active{filter:brightness(.9);}
+  .back{background:none;border:none;color:var(--muted);font-size:16px;padding:6px 0 14px;
+    cursor:pointer;letter-spacing:1px;text-transform:uppercase;}
+
+  .toggle{display:flex;gap:0;margin:0 0 16px;border:1px solid var(--line);border-radius:9px;overflow:hidden;}
+  .toggle button{flex:1;background:var(--card2);color:var(--muted);border:none;padding:12px;
+    font-size:15px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;}
+  .toggle button.on{background:var(--accent);color:#fff;}
+
+  .note{color:var(--muted);font-size:13px;line-height:1.5;margin:6px 2px 0;}
+  .warn{background:rgba(226,73,44,.12);border:1px solid var(--accent);border-radius:8px;
+    padding:10px 12px;font-size:13px;color:#f0c4b8;margin:0 0 14px;letter-spacing:.3px;}
+
+  .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;
+    border-bottom:1px solid var(--line);cursor:pointer;}
+  .row:last-child{border-bottom:none;}
+  .row .nm{font-size:19px;font-weight:700;letter-spacing:.5px;}
+  .row .ty{color:var(--muted);font-size:13px;margin-top:2px;letter-spacing:1px;text-transform:uppercase;}
+  .row .go{color:var(--accent);font-size:24px;}
+  a.row{color:var(--text);text-decoration:none;}
+  .catlbl{color:var(--accent2);font-size:12px;font-weight:800;letter-spacing:2px;
+    text-transform:uppercase;margin:18px 0 2px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .movechip{display:inline-flex;align-items:center;gap:6px;background:var(--card2);
+    border:1px solid var(--line);border-radius:8px;padding:9px 12px;color:var(--text);
+    text-decoration:none;font-size:15px;font-weight:600;}
+  .movechip .p{color:var(--accent);font-weight:800;}
+
+  .pill-row{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px;}
+  .pill{background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:9px;
+    padding:14px 0;font-size:18px;font-weight:800;cursor:pointer;text-align:center;flex:1;min-width:64px;letter-spacing:1px;}
+  .pill.sel{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  .clock{font-size:74px;font-weight:800;text-align:center;margin:14px 0;font-variant-numeric:tabular-nums;
+    letter-spacing:2px;}
+  .clock.go{color:var(--accent2);}
+  .clock.rest{color:var(--muted);}
+  .tstate{text-align:center;color:var(--muted);font-size:15px;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;}
+  @keyframes flash{50%{color:var(--accent);transform:scale(1.05);}}
+  .clock.ding{animation:flash .4s ease-in-out 3;}
+
+  .logitem{padding:12px 0;border-bottom:1px solid var(--line);}
+  .logitem:last-child{border-bottom:none;}
+  .logitem .ln{font-size:17px;font-weight:700;}
+  .logitem .lr{color:var(--accent2);font-size:16px;margin-top:2px;}
+  .logitem .ld{color:var(--muted);font-size:13px;margin-top:2px;}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;
+    justify-content:center;padding:20px;z-index:50;}
+  .modal.on{display:flex;}
+  .modal .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;width:100%;max-width:440px;}
+  .modal h3{margin:0 0 4px;font-size:21px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+  .modal label{display:block;color:var(--accent2);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:16px 0 6px;font-weight:800;}
+  .modal input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:8px;
+    padding:15px;color:var(--text);font-size:18px;}
+  .modal input:focus{outline:none;border-color:var(--accent);}
+  .mrow{display:flex;gap:10px;margin-top:20px;}
+  .mrow .btn{margin:0;}
+  .toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%);background:var(--ok);
+    color:#fff;padding:12px 20px;border-radius:8px;font-weight:700;letter-spacing:.5px;z-index:60;
+    opacity:0;transition:opacity .2s;pointer-events:none;}
+  .toast.on{opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- ================= HOME ================= -->
+<section id="home" class="screen active">
+  <h1>W<span>O</span>D</h1>
+  <p class="sub">David · Hometown Fitness</p>
+  <button class="choice" onclick="show('today');renderToday()">
+    <span class="ic"><svg viewBox="0 0 48 48"><path d="M8 24h6"/><path d="M34 24h6"/><path d="M14 16h4v16h-4z"/><path d="M30 16h4v16h-4z"/><path d="M18 24h12"/></svg></span>
+    <span>Today's WOD<small>Warm-up · strength · metcon</small></span>
+  </button>
+  <button class="choice" onclick="show('bench');renderBench()">
+    <span class="ic"><svg viewBox="0 0 48 48"><circle cx="24" cy="14" r="6"/><path d="M24 20v4"/><path d="M14 40 L24 24 L34 40"/><path d="M12 30h24"/></svg></span>
+    <span>Benchmark WODs<small>Fran, Cindy, Helen, Murph…</small></span>
+  </button>
+  <button class="choice" onclick="show('timers')">
+    <span class="ic"><svg viewBox="0 0 48 48"><circle cx="24" cy="26" r="15"/><path d="M24 26V17"/><path d="M19 6h10"/><path d="M24 6v5"/><path d="M37 15l3-3"/></svg></span>
+    <span>Timers<small>AMRAP · EMOM · Tabata · For time</small></span>
+  </button>
+  <button class="choice" onclick="show('moves');renderMoves()">
+    <span class="ic"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="16"/><path d="M20 17 L32 24 L20 31 Z"/></svg></span>
+    <span>Movements<small>Form-demo videos for every move</small></span>
+  </button>
+  <button class="choice" onclick="show('log');renderLog()">
+    <span class="ic"><svg viewBox="0 0 48 48"><rect x="12" y="8" width="24" height="32" rx="2"/><path d="M18 18h12"/><path d="M18 25h12"/><path d="M18 32h8"/></svg></span>
+    <span>My Log<small>Times, rounds & weights</small></span>
+  </button>
+  <p class="note">Lower all weights under control — no dropping or bouncing. Scale the load so every rep is controlled.</p>
+</section>
+
+<!-- ================= TODAY ================= -->
+<section id="today" class="screen">
+  <button class="back" onclick="show('home')">‹ Home</button>
+  <div class="warn">⚠ No dropping weights — lower every barbell/DB/KB under control. Scale load to match.</div>
+  <div class="toggle">
+    <button id="tg-rx" class="on" onclick="setLevel('rx')">RX</button>
+    <button id="tg-sc" onclick="setLevel('scaled')">Scaled</button>
+  </div>
+  <div class="card">
+    <h2 id="wodName">—</h2>
+    <p class="meta" id="wodFocus"></p>
+    <div class="block"><div class="lbl">Warm-up</div><div class="body" id="wodWarm"></div></div>
+    <div class="block"><div class="lbl">Strength</div><div class="body" id="wodStr"></div></div>
+    <div class="block"><div class="lbl" id="wodMetLbl">Metcon</div><div class="body" id="wodMet"></div></div>
+    <div class="block"><div class="lbl">Moves — tap for a demo</div><div id="wodMoves" class="chips"></div></div>
+  </div>
+  <button class="btn primary" id="wodTimerBtn" onclick="openWodTimer()">Start timer</button>
+  <button class="btn ghost" onclick="logResult(currentWodName())">Log result</button>
+  <button class="btn ghost" onclick="nextWod()">Different WOD</button>
+</section>
+
+<!-- ================= BENCHMARK LIST ================= -->
+<section id="bench" class="screen">
+  <button class="back" onclick="show('home')">‹ Home</button>
+  <div class="card">
+    <h2>Benchmark WODs</h2>
+    <p class="meta">The classics. Tap one for the details.</p>
+    <div id="benchList"></div>
+  </div>
+</section>
+
+<!-- ================= BENCHMARK DETAIL ================= -->
+<section id="benchDetail" class="screen">
+  <button class="back" onclick="show('bench')">‹ Benchmarks</button>
+  <div class="warn">⚠ No dropping weights — lower everything under control.</div>
+  <div class="toggle">
+    <button id="btg-rx" class="on" onclick="setLevel('rx')">RX</button>
+    <button id="btg-sc" onclick="setLevel('scaled')">Scaled</button>
+  </div>
+  <div class="card">
+    <h2 id="bName">—</h2>
+    <p class="meta" id="bType"></p>
+    <div class="block"><div class="lbl">Workout</div><div class="body" id="bWork"></div></div>
+    <div class="block" id="bNoteBlock"><div class="lbl">Notes</div><div class="body" id="bNote"></div></div>
+  </div>
+  <button class="btn primary" id="bTimerBtn" onclick="openBenchTimer()">Start timer</button>
+  <button class="btn ghost" onclick="logResult(currentBenchName())">Log result</button>
+</section>
+
+<!-- ================= TIMERS ================= -->
+<section id="timers" class="screen">
+  <button class="back" onclick="show('home')">‹ Home</button>
+  <div class="card">
+    <h2>Timers</h2>
+    <div class="pill-row">
+      <div class="pill sel" data-m="amrap" onclick="pickMode('amrap')">AMRAP</div>
+      <div class="pill" data-m="emom" onclick="pickMode('emom')">EMOM</div>
+      <div class="pill" data-m="tabata" onclick="pickMode('tabata')">Tabata</div>
+      <div class="pill" data-m="fortime" onclick="pickMode('fortime')">For time</div>
+    </div>
+    <div id="minRow">
+      <p class="meta" id="minLabel">Minutes</p>
+      <div class="pill-row" id="minPills"></div>
+    </div>
+    <div class="tstate" id="tState">Ready</div>
+    <div class="clock" id="tDisp">00:00</div>
+    <button class="btn primary" id="tGo" onclick="timerGo()">Start</button>
+    <button class="btn ghost" onclick="timerReset()">Reset</button>
+    <p class="note" id="tNote"></p>
+  </div>
+</section>
+
+<!-- ================= LOG ================= -->
+<section id="log" class="screen">
+  <button class="back" onclick="show('home')">‹ Home</button>
+  <div class="card">
+    <h2>My Log</h2>
+    <p class="meta">Your recorded results, newest first.</p>
+    <div id="logList"></div>
+  </div>
+  <button class="btn ghost" onclick="clearLog()">Clear log</button>
+</section>
+
+<!-- ================= MOVEMENTS ================= -->
+<section id="moves" class="screen">
+  <button class="back" onclick="show('home')">‹ Home</button>
+  <div class="card">
+    <h2>Movements</h2>
+    <p class="meta">Tap any move for a form-demo video. Rusty on a term? Start here.</p>
+    <div id="movesList"></div>
+  </div>
+  <p class="note">Videos open a quick search of demos for that movement — pick whichever coach's cues click for you.</p>
+</section>
+
+<div class="modal" id="logModal">
+  <div class="box">
+    <h3 id="lmTitle">Log result</h3>
+    <p class="meta" id="lmSub">Enter what you did.</p>
+    <label>Result — time or rounds + reps</label>
+    <input id="lmRes" type="text" placeholder="e.g. 8:42  or  14+7" autocomplete="off">
+    <label>Weights / notes (optional)</label>
+    <input id="lmNotes" type="text" placeholder="e.g. thrusters 65 lb" autocomplete="off">
+    <div class="mrow">
+      <button class="btn ghost" onclick="closeLog()">Cancel</button>
+      <button class="btn primary" onclick="saveLog()">Save</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ DATA ============ */
+const WODS = [
+  { name:"Engine", focus:"Legs + lungs",
+    warm:"3 rounds:\n12 cal row\n10 air squats\n10 empty-barbell good mornings\n5 inchworms",
+    str:"Back squat — 5 x 5, building each set (controlled tempo, rack it, no dropping)",
+    metLbl:"Metcon — For time", timer:{mode:"fortime"},
+    rx:"21-15-9 for time:\nDumbbell thrusters (2 x 35 lb)\nPull-ups",
+    scaled:"21-15-9 for time:\nDumbbell thrusters (2 x 20 lb)\nRing rows or banded pull-ups" },
+  { name:"Grind", focus:"Posterior chain",
+    warm:"25 cal row, then 2 rounds:\n10 KB deadlifts\n10 push-ups\n10 walking lunges",
+    str:"Deadlift — 5 x 3, building (set the bar down under control every rep)",
+    metLbl:"Metcon — AMRAP 15", timer:{mode:"amrap",min:15},
+    rx:"AMRAP 15 min:\n15 KB swings (24 kg)\n15 goblet squats\n15 sit-ups",
+    scaled:"AMRAP 15 min:\n12 KB swings (16 kg)\n12 goblet squats\n12 sit-ups" },
+  { name:"Sprint", focus:"Conditioning intervals",
+    warm:"3 min easy row/bike, then:\n10 scap pull-ups\n10 air squats\n10 arm circles each way",
+    str:"Push press — build to a heavy set of 3 (controlled, no dropping)",
+    metLbl:"Metcon — EMOM 20", timer:{mode:"emom",min:20},
+    rx:"EMOM 20 (rotate):\nMin 1 — 14/12 cal row\nMin 2 — 10 DB push press (2 x 35)\nMin 3 — 15 KB swings (24 kg)\nMin 4 — 10 burpees",
+    scaled:"EMOM 20 (rotate):\nMin 1 — 10/8 cal row\nMin 2 — 10 DB push press (2 x 20)\nMin 3 — 12 KB swings (16 kg)\nMin 4 — 8 burpees" },
+  { name:"Chipper", focus:"Full-body grind",
+    warm:"2 rounds:\n10 cal row\n10 air squats\n10 push-ups\n5 strict pull-ups",
+    str:"Bench press — 5 x 5 across (controlled)",
+    metLbl:"Metcon — For time", timer:{mode:"fortime"},
+    rx:"For time:\n50 cal row\n40 DB snatch (50 lb, alternating)\n30 goblet squats (24 kg)\n20 pull-ups\n10 burpees",
+    scaled:"For time:\n40 cal row\n40 DB snatch (35 lb, alternating)\n30 goblet squats (16 kg)\n20 ring rows\n10 burpees" },
+  { name:"Kettlebell Complex", focus:"Grip + shoulders",
+    warm:"3 rounds:\n5 KB deadlifts\n5 KB cleans each side\n5 KB presses each side",
+    str:"KB strict press — 5 x 5 each arm (controlled)",
+    metLbl:"Metcon — AMRAP 12", timer:{mode:"amrap",min:12},
+    rx:"AMRAP 12:\n10 KB swings (24 kg)\n8 KB goblet reverse lunges\n6 KB push press each arm",
+    scaled:"AMRAP 12:\n10 KB swings (16 kg)\n8 goblet reverse lunges\n6 push press each arm (lighter)" },
+  { name:"Cindy's Cousin", focus:"Bodyweight + rower",
+    warm:"20 cal row, then:\n10 air squats\n10 push-ups\n5 pull-ups",
+    str:"Strict pull-up practice — 5 sets of max-2 reps (leave gas in tank)",
+    metLbl:"Metcon — AMRAP 20", timer:{mode:"amrap",min:20},
+    rx:"AMRAP 20:\n5 pull-ups\n10 push-ups\n15 air squats\n(every 5 rounds: 12 cal row)",
+    scaled:"AMRAP 20:\n5 ring rows\n10 knee push-ups\n15 air squats\n(every 5 rounds: 10 cal row)" },
+  { name:"Barbell Burner", focus:"Barbell cycling (controlled)",
+    warm:"2 rounds:\n12 cal row\n10 empty-bar front squats\n10 empty-bar push press",
+    str:"Front squat — 5 x 3, building (controlled)",
+    metLbl:"Metcon — For time", timer:{mode:"fortime"},
+    rx:"3 rounds for time:\n12 barbell thrusters (95 lb, controlled)\n12 pull-ups\n15 cal row",
+    scaled:"3 rounds for time:\n12 barbell thrusters (65 lb)\n12 ring rows\n12 cal row" },
+  { name:"Row Repeats", focus:"Aerobic power",
+    warm:"3 min easy row, then:\n10 air squats\n10 push-ups\n10 KB deadlifts",
+    str:"Strict overhead press — 5 x 5 (controlled)",
+    metLbl:"Metcon — For time", timer:{mode:"fortime"},
+    rx:"5 rounds for time:\n15 cal row\n15 KB swings (24 kg)\n10 push-ups",
+    scaled:"5 rounds for time:\n12 cal row\n15 KB swings (16 kg)\n10 knee push-ups" },
+  { name:"Pull Day", focus:"Back + grip",
+    warm:"25 cal row, then 2 rounds:\n8 scap pull-ups\n10 band pull-aparts\n10 ring rows",
+    str:"Weighted pull-ups (or lat pulldown) — 5 x 5",
+    metLbl:"Metcon — AMRAP 14", timer:{mode:"amrap",min:14},
+    rx:"AMRAP 14:\n8 pull-ups\n10 DB bent-over rows (2 x 40)\n12 KB swings (24 kg)",
+    scaled:"AMRAP 14:\n8 ring rows\n10 DB rows (2 x 25)\n12 KB swings (16 kg)" },
+  { name:"Legs on Fire", focus:"Squat volume",
+    warm:"2 rounds:\n10 cal row\n10 air squats\n10 walking lunges\n10 empty-bar good mornings",
+    str:"Back squat — 4 x 8 (controlled, rack it)",
+    metLbl:"Metcon — For time", timer:{mode:"fortime"},
+    rx:"3 rounds for time:\n20 goblet squats (24 kg)\n20 walking lunges\n15 cal row",
+    scaled:"3 rounds for time:\n20 goblet squats (16 kg)\n20 walking lunges\n12 cal row" },
+  { name:"Push Power", focus:"Chest + shoulders",
+    warm:"3 min row/bike, then:\n10 push-ups\n10 band pull-aparts\narm circles each way",
+    str:"Bench press — build to a heavy set of 3 (controlled)",
+    metLbl:"Metcon — EMOM 18", timer:{mode:"emom",min:18},
+    rx:"EMOM 18 (rotate):\nMin 1 — 10 DB bench press (2 x 45)\nMin 2 — 12 push-ups\nMin 3 — 10 DB push press (2 x 35)",
+    scaled:"EMOM 18 (rotate):\nMin 1 — 10 DB bench (2 x 25)\nMin 2 — 10 knee push-ups\nMin 3 — 10 DB push press (2 x 20)" },
+  { name:"Death By Burpees", focus:"Mental grit",
+    warm:"20 cal row, then:\n10 air squats\n10 push-ups\n5 pull-ups",
+    str:"Deadlift — 3 x 5 (controlled, no bounce)",
+    metLbl:"Metcon — EMOM ladder", timer:{mode:"emom",min:20},
+    rx:"Every minute, add 1 rep:\nMin 1: 1 burpee, Min 2: 2 burpees, Min 3: 3… continue until you can't finish inside the minute.\nRest 3 min, then repeat the ladder with KB swings (24 kg).",
+    scaled:"Same ladder; cap each round at 10 minutes. KB 16 kg." },
+  { name:"Kettlebell Gauntlet", focus:"Full-body kettlebell",
+    warm:"3 rounds:\n5 KB deadlifts\n5 KB cleans each side\n5 goblet squats",
+    str:"KB clean & press — 5 x 3 each arm (controlled)",
+    metLbl:"Metcon — AMRAP 16", timer:{mode:"amrap",min:16},
+    rx:"AMRAP 16:\n12 KB swings (24 kg)\n10 goblet squats\n8 KB push press each arm\n10 cal row",
+    scaled:"AMRAP 16:\n12 KB swings (16 kg)\n10 goblet squats\n8 push press each arm\n10 cal row" },
+  { name:"Rower & Ranger", focus:"Long conditioning",
+    warm:"25 cal easy row, then:\n10 sit-ups\n10 air squats\n10 push-ups",
+    str:"DB shoulder press — 4 x 8 (controlled)",
+    metLbl:"Metcon — For time", timer:{mode:"fortime"},
+    rx:"For time:\n50 cal row\n50 sit-ups\n40 DB snatch (50 lb, alternating)\n30 goblet squats (24 kg)\n20 pull-ups",
+    scaled:"For time:\n40 cal row\n40 sit-ups\n40 DB snatch (35 lb)\n30 goblet squats (16 kg)\n20 ring rows" }
+];
+
+const BENCH = [
+  { name:"Fran", type:"For time", timer:{mode:"fortime"},
+    rx:"21-15-9 for time:\nBarbell thrusters (95 lb)\nPull-ups",
+    scaled:"21-15-9 for time:\nThrusters (65 lb)\nBanded pull-ups or ring rows",
+    note:"Classic sprint. Keep thrusters controlled — no dropping the bar between reps." },
+  { name:"Cindy", type:"AMRAP 20", timer:{mode:"amrap",min:20},
+    rx:"AMRAP 20 min:\n5 pull-ups\n10 push-ups\n15 air squats",
+    scaled:"AMRAP 20 min:\n5 ring rows\n10 knee push-ups\n15 air squats",
+    note:"Bodyweight benchmark. Steady pace beats sprinting early." },
+  { name:"Helen", type:"3 rounds for time", timer:{mode:"fortime"},
+    rx:"3 rounds for time:\n25 cal row (sub for run)\n21 KB swings (24 kg)\n12 pull-ups",
+    scaled:"3 rounds for time:\n20 cal row\n21 KB swings (16 kg)\n12 ring rows",
+    note:"Row replaces the 20 cal run since we're indoors." },
+  { name:"Annie", type:"For time", timer:{mode:"fortime"},
+    rx:"50-40-30-20-10 for time:\nDouble-unders\nSit-ups",
+    scaled:"50-40-30-20-10 for time:\nSingle-unders (x2 reps) or 15/12/9/6/3 cal row\nSit-ups",
+    note:"No rope? Swap double-unders for row calories at the listed scale." },
+  { name:"Grace", type:"For time", timer:{mode:"fortime"},
+    rx:"30 clean & jerks for time (135 lb) — every rep lowered under control",
+    scaled:"30 clean & jerks for time (95 lb) or 30 DB clean & jerks (2 x 35)",
+    note:"Normally touch-and-go with drops. Here: controlled singles/touch-and-go, no dumping. Scale load to keep it moving." },
+  { name:"Diane", type:"For time", timer:{mode:"fortime"},
+    rx:"21-15-9 for time:\nDeadlifts (225 lb, controlled)\nHandstand push-ups",
+    scaled:"21-15-9 for time:\nDeadlifts (155 lb)\nPike push-ups or DB push press (2 x 30)",
+    note:"Set the deadlift down under control every rep — no bouncing." },
+  { name:"Angie", type:"For time", timer:{mode:"fortime"},
+    rx:"For time:\n100 pull-ups\n100 push-ups\n100 sit-ups\n100 air squats\n(complete each before moving on)",
+    scaled:"For time:\n50 of each, same order\n(ring rows / knee push-ups as needed)",
+    note:"Long bodyweight grind — break sets early and often." },
+  { name:"Barbara", type:"5 rounds", timer:{mode:"fortime"},
+    rx:"5 rounds, resting 3 min between:\n20 pull-ups\n30 push-ups\n40 sit-ups\n50 air squats",
+    scaled:"5 rounds, rest 3 min:\n15 ring rows\n20 push-ups\n30 sit-ups\n40 air squats",
+    note:"Time each round; the rest is part of the workout." },
+  { name:"Chelsea", type:"EMOM 30", timer:{mode:"emom",min:30},
+    rx:"EMOM 30 min:\n5 pull-ups\n10 push-ups\n15 air squats (each minute)",
+    scaled:"EMOM 20 min, or reduce to 3 / 6 / 9 reps",
+    note:"Fall behind the minute? Drop to Cindy-style AMRAP for remaining time." },
+  { name:"Murph", type:"For time", timer:{mode:"fortime"},
+    rx:"For time (with vest if you have one):\n80 cal row\n100 pull-ups\n200 push-ups\n300 air squats\n80 cal row\n(partition the middle as 20 rounds of 5-10-15)",
+    scaled:"Half Murph: 40 cal row, 50 pull-ups, 100 push-ups, 150 air squats, 40 cal row",
+    note:"Rows replace the runs. Partition the middle to survive it." },
+  { name:"DT", type:"5 rounds for time", timer:{mode:"fortime"},
+    rx:"5 rounds for time:\n12 deadlifts\n9 hang power cleans\n6 push jerks\n(155 lb, unbroken barbell, controlled)",
+    scaled:"5 rounds for time (105 lb) or DB DT (2 x 35):\n12 DL / 9 hang cleans / 6 push jerks",
+    note:"Keep the bar in your hands — controlled to the floor, no dropping." },
+  { name:"Jackie", type:"For time", timer:{mode:"fortime"},
+    rx:"For time:\n50 cal row\n50 barbell thrusters (45 lb)\n30 pull-ups",
+    scaled:"For time:\n50 cal row\n50 thrusters (35 lb / empty bar)\n30 ring rows",
+    note:"Light bar, big engine — hold on to the thrusters." }
+];
+
+/* ============ SAFE STORAGE (works even where localStorage is blocked) ============ */
+const _mem={};
+function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return (k in _mem)?_mem[k]:d; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){ _mem[k]=String(v); } }
+
+/* ============ NAV ============ */
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active'); window.scrollTo(0,0); }
+
+/* ============ LEVEL TOGGLE ============ */
+let level = lsGet('dLevel','rx');
+function syncToggle(){
+  document.getElementById('tg-rx').classList.toggle('on',level==='rx');
+  document.getElementById('tg-sc').classList.toggle('on',level==='scaled');
+  document.getElementById('btg-rx').classList.toggle('on',level==='rx');
+  document.getElementById('btg-sc').classList.toggle('on',level==='scaled');
+}
+function setLevel(l){ level=l; lsSet('dLevel',l); syncToggle();
+  if(document.getElementById('today').classList.contains('active')) renderToday();
+  if(document.getElementById('benchDetail').classList.contains('active')) renderBenchDetail(); }
+
+/* ============ TODAY'S WOD ============ */
+function todayIndex(){
+  const off=parseInt(lsGet('wodOffset','0'),10);
+  const day=Math.floor(Date.now()/86400000);
+  return (day+off)%WODS.length;
+}
+let _wodIdx=0;
+function renderToday(){
+  syncToggle();
+  _wodIdx=todayIndex();
+  const w=WODS[_wodIdx];
+  document.getElementById('wodName').textContent=w.name;
+  document.getElementById('wodFocus').textContent=w.focus;
+  document.getElementById('wodWarm').textContent=w.warm;
+  document.getElementById('wodStr').textContent=w.str;
+  document.getElementById('wodMetLbl').textContent=w.metLbl;
+  document.getElementById('wodMet').textContent=(level==='rx'?w.rx:w.scaled);
+  renderWodMoves(w.name);
+}
+function nextWod(){ const off=parseInt(lsGet('wodOffset','0'),10);
+  lsSet('wodOffset',off+1); renderToday(); }
+function currentWodName(){ return WODS[_wodIdx].name; }
+function openWodTimer(){ show('timers'); applyTimer(WODS[_wodIdx].timer); }
+
+/* ============ BENCHMARKS ============ */
+let _benchIdx=0;
+function renderBench(){
+  const box=document.getElementById('benchList'); box.innerHTML='';
+  BENCH.forEach((b,i)=>{
+    const r=document.createElement('div'); r.className='row';
+    r.innerHTML='<div><div class="nm">'+b.name+'</div><div class="ty">'+b.type+'</div></div><div class="go">›</div>';
+    r.onclick=()=>{ _benchIdx=i; show('benchDetail'); renderBenchDetail(); };
+    box.appendChild(r);
+  });
+}
+function renderBenchDetail(){
+  syncToggle();
+  const b=BENCH[_benchIdx];
+  document.getElementById('bName').textContent=b.name;
+  document.getElementById('bType').textContent=b.type;
+  document.getElementById('bWork').textContent=(level==='rx'?b.rx:b.scaled);
+  document.getElementById('bNote').textContent=b.note||'';
+  document.getElementById('bNoteBlock').style.display=b.note?'block':'none';
+}
+function currentBenchName(){ return BENCH[_benchIdx].name; }
+function openBenchTimer(){ show('timers'); applyTimer(BENCH[_benchIdx].timer); }
+
+/* ============ MOVEMENTS ============ */
+const MOVES=[
+  ["Barbell",[["Back squat","back squat"],["Front squat","front squat"],["Deadlift","barbell deadlift"],["Bench press","barbell bench press"],["Barbell thruster","barbell thruster"],["Push press","barbell push press"],["Strict / overhead press","strict press overhead press"],["Good morning","barbell good morning"],["Clean & jerk","clean and jerk"],["Hang power clean","hang power clean"],["Push jerk","push jerk"]]],
+  ["Dumbbell",[["DB thruster","dumbbell thruster"],["DB snatch","dumbbell snatch alternating"],["DB push press","dumbbell push press"],["DB bench press","dumbbell bench press"],["DB bent-over row","dumbbell bent over row"],["DB shoulder press","dumbbell shoulder press"]]],
+  ["Kettlebell",[["KB swing","kettlebell swing"],["KB deadlift","kettlebell deadlift"],["KB clean","kettlebell clean"],["Goblet squat","goblet squat"],["Goblet reverse lunge","goblet reverse lunge"],["KB push press","kettlebell push press"],["KB strict press","kettlebell strict press"]]],
+  ["Bodyweight & gymnastics",[["Air squat","air squat"],["Push-up","push up proper form"],["Pull-up","pull up kipping"],["Strict pull-up","strict pull up"],["Scap pull-up","scapular pull up"],["Ring row","ring row"],["Burpee","burpee"],["Sit-up","abmat sit up"],["Walking lunge","walking lunge"],["Inchworm","inchworm exercise"],["Band pull-apart","band pull apart"],["Handstand push-up","handstand push up"],["Pike push-up","pike push up"],["Double-under","double under jump rope"],["Toes-to-bar","toes to bar"]]],
+  ["Machine",[["Rowing technique","concept2 rowing technique"]]]
+];
+function renderMoves(){
+  const box=document.getElementById('movesList'); box.innerHTML='';
+  MOVES.forEach(sec=>{
+    const h=document.createElement('div'); h.className='catlbl'; h.textContent=sec[0]; box.appendChild(h);
+    sec[1].forEach(it=>{
+      const a=document.createElement('a'); a.className='row';
+      a.href='https://www.youtube.com/results?search_query='+encodeURIComponent(it[1]+' crossfit demo');
+      a.target='_blank'; a.rel='noopener';
+      a.innerHTML='<div class="nm">'+it[0]+'</div><div class="go">▷</div>';
+      box.appendChild(a);
+    });
+  });
+}
+const MOVEQ={}; MOVES.forEach(sec=>sec[1].forEach(it=>{ MOVEQ[it[0]]=it[1]; }));
+function moveURL(name){ const q=MOVEQ[name]||name; return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q+' crossfit demo'); }
+const WOD_MOVES={
+  "Engine":["Back squat","DB thruster","Pull-up","Ring row","Air squat","Good morning"],
+  "Grind":["Deadlift","KB swing","Goblet squat","KB deadlift","Walking lunge","Push-up","Sit-up"],
+  "Sprint":["Push press","DB push press","KB swing","Burpee","Scap pull-up","Rowing technique"],
+  "Chipper":["Bench press","DB snatch","Goblet squat","Pull-up","Strict pull-up","Ring row","Burpee","Rowing technique"],
+  "Kettlebell Complex":["KB deadlift","KB clean","KB strict press","KB swing","Goblet reverse lunge","KB push press"],
+  "Cindy's Cousin":["Pull-up","Push-up","Air squat","Strict pull-up","Ring row","Rowing technique"],
+  "Barbell Burner":["Front squat","Push press","Barbell thruster","Pull-up","Ring row","Rowing technique"],
+  "Row Repeats":["Strict / overhead press","KB swing","KB deadlift","Push-up","Air squat","Rowing technique"],
+  "Pull Day":["Pull-up","DB bent-over row","KB swing","Scap pull-up","Band pull-apart","Ring row"],
+  "Legs on Fire":["Back squat","Goblet squat","Walking lunge","Good morning","Air squat","Rowing technique"],
+  "Push Power":["Bench press","DB bench press","DB push press","Push-up","Band pull-apart"],
+  "Death By Burpees":["Deadlift","Burpee","KB swing","Pull-up","Push-up","Air squat","Rowing technique"],
+  "Kettlebell Gauntlet":["KB deadlift","KB clean","KB push press","KB swing","Goblet squat","Rowing technique"],
+  "Rower & Ranger":["DB shoulder press","DB snatch","Goblet squat","Pull-up","Sit-up","Ring row","Rowing technique","Air squat"]
+};
+function renderWodMoves(name){
+  const box=document.getElementById('wodMoves'); const list=WOD_MOVES[name]||[];
+  box.innerHTML=list.map(n=>'<a class="movechip" target="_blank" rel="noopener" href="'+moveURL(n)+'">'+n+' <span class="p">▷</span></a>').join('');
+}
+
+/* ============ BEEP ============ */
+function beep(times,freq){
+  try{ const A=window.AudioContext||window.webkitAudioContext; const a=new A(); let t=a.currentTime;
+    for(let i=0;i<(times||1);i++){ const o=a.createOscillator(),g=a.createGain();
+      o.connect(g); g.connect(a.destination); o.type='square'; o.frequency.value=freq||880;
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.35,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.18); o.start(t); o.stop(t+0.2); t+=0.28; }
+  }catch(e){}
+}
+
+/* ============ TIMERS ============ */
+let tMode='amrap', tMin=15, tInt=null, tSecs=0, tRunning=false, tabRound=0, tabWork=true;
+const MIN_OPTS={amrap:[8,12,15,20],emom:[10,12,20,30],fortime:[]};
+function pickMode(m){ tMode=m; document.querySelectorAll('#timers .pill').forEach(p=>p.classList.toggle('sel',p.dataset.m===m)); resetTimerUI(); }
+function resetTimerUI(){
+  timerReset();
+  const minRow=document.getElementById('minRow'); const mp=document.getElementById('minPills');
+  const note=document.getElementById('tNote');
+  if(tMode==='tabata'){ minRow.style.display='none'; document.getElementById('tDisp').textContent='00:20'; note.textContent='8 rounds — 20s work / 10s rest.'; }
+  else if(tMode==='fortime'){ minRow.style.display='none'; document.getElementById('tDisp').textContent='00:00'; note.textContent='Counts up. Tap Start, tap Reset when done.'; }
+  else {
+    minRow.style.display='block'; mp.innerHTML='';
+    document.getElementById('minLabel').textContent=(tMode==='amrap'?'AMRAP minutes':'EMOM minutes');
+    MIN_OPTS[tMode].forEach(v=>{ const d=document.createElement('div'); d.className='pill'+(v===tMin?' sel':'');
+      d.textContent=v; d.onclick=()=>{ tMin=v; resetTimerUI(); }; mp.appendChild(d); });
+    if(MIN_OPTS[tMode].indexOf(tMin)<0) tMin=MIN_OPTS[tMode][0];
+    document.getElementById('tDisp').textContent=fmt(tMin*60);
+    note.textContent=(tMode==='amrap'?'Counts down. Beeps at the last 3s and at 0.':'Beeps at the start of every minute.');
+  }
+}
+function applyTimer(cfg){ if(!cfg) return; pickMode(cfg.mode); if(cfg.min){ tMin=cfg.min; } resetTimerUI(); }
+function fmt(s){ s=Math.max(0,s); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+const disp=()=>document.getElementById('tDisp');
+function setState(txt,cls){ document.getElementById('tState').textContent=txt; disp().className='clock'+(cls?' '+cls:''); }
+function timerReset(){ clearInterval(tInt); tRunning=false; tabRound=0; tabWork=true;
+  document.getElementById('tGo').textContent='Start'; setState('Ready','');
+  if(tMode==='fortime'){ tSecs=0; disp().textContent='00:00'; }
+  else if(tMode==='tabata'){ disp().textContent='00:20'; }
+  else { disp().textContent=fmt(tMin*60); }
+}
+function timerGo(){
+  if(tRunning){ clearInterval(tInt); tRunning=false; document.getElementById('tGo').textContent='Resume'; setState('Paused',''); return; }
+  tRunning=true; document.getElementById('tGo').textContent='Pause';
+  if(tMode==='fortime'){ setState('Working','go'); tInt=setInterval(()=>{ tSecs++; disp().textContent=fmt(tSecs); },1000); }
+  else if(tMode==='amrap'){ if(disp().textContent==='00:00'||tSecs<=0) tSecs=tMin*60; else tSecs=toSecs(disp().textContent); setState('AMRAP','go');
+    tInt=setInterval(()=>{ tSecs--; disp().textContent=fmt(tSecs); if(tSecs<=3&&tSecs>0)beep(1,700); if(tSecs<=0){ clearInterval(tInt); tRunning=false; document.getElementById('tGo').textContent='Start'; setState('Time','ding'); beep(3,900);} },1000); }
+  else if(tMode==='emom'){ tSecs=toSecs(disp().textContent); if(tSecs<=0)tSecs=tMin*60; let total=tSecs; setState('EMOM','go'); beep(1,700);
+    tInt=setInterval(()=>{ tSecs--; disp().textContent=fmt(tSecs); const into=(tMin*60-tSecs); if(tSecs>0 && into%60===0) beep(1,700); if(tSecs<=0){ clearInterval(tInt); tRunning=false; document.getElementById('tGo').textContent='Start'; setState('Done','ding'); beep(3,900);} },1000); }
+  else if(tMode==='tabata'){ tabRound=tabRound||1; tabWork=true; tSecs=20; setState('Work 1/8','go'); beep(1,900);
+    tInt=setInterval(()=>{ tSecs--; disp().textContent=fmt(tSecs);
+      if(tSecs<=0){ if(tabWork){ tabWork=false; tSecs=10; setState('Rest '+tabRound+'/8','rest'); beep(1,500); }
+        else { tabRound++; if(tabRound>8){ clearInterval(tInt); tRunning=false; document.getElementById('tGo').textContent='Start'; setState('Done','ding'); beep(3,900); return; }
+          tabWork=true; tSecs=20; setState('Work '+tabRound+'/8','go'); beep(1,900); } } },1000); }
+}
+function toSecs(mmss){ const p=mmss.split(':'); return (+p[0])*60+(+p[1]); }
+
+/* ============ LOG ============ */
+let _logName='';
+function logResult(name){
+  _logName=name||'Workout';
+  document.getElementById('lmTitle').textContent='Log — '+_logName;
+  document.getElementById('lmRes').value='';
+  document.getElementById('lmNotes').value='';
+  document.getElementById('logModal').classList.add('on');
+  setTimeout(()=>{ try{document.getElementById('lmRes').focus();}catch(e){} },60);
+}
+function closeLog(){ document.getElementById('logModal').classList.remove('on'); }
+function saveLog(){
+  const res=document.getElementById('lmRes').value.trim();
+  if(!res){ document.getElementById('lmRes').focus(); return; }
+  const notes=document.getElementById('lmNotes').value.trim();
+  const log=JSON.parse(lsGet('dLog','[]'));
+  const d=new Date(); const ds=(d.getMonth()+1)+'/'+d.getDate()+'/'+String(d.getFullYear()).slice(2);
+  log.unshift({name:_logName,res:res,notes:notes,date:ds});
+  lsSet('dLog',JSON.stringify(log));
+  closeLog(); renderLog(); showToast('Logged '+_logName);
+}
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1800); }
+function renderLog(){
+  const box=document.getElementById('logList'); const log=JSON.parse(lsGet('dLog','[]'));
+  if(!log.length){ box.innerHTML='<p class="meta">No results yet. Finish a workout and tap "Log result".</p>'; return; }
+  box.innerHTML=log.map(e=>'<div class="logitem"><div class="ln">'+e.name+'</div><div class="lr">'+e.res+'</div>'+(e.notes?'<div class="ld">'+e.notes+'</div>':'')+'<div class="ld">'+e.date+'</div></div>').join('');
+}
+let _clearArm=false;
+function clearLog(){
+  const b=(typeof event!=='undefined')&&event?event.target:null;
+  if(!_clearArm){ _clearArm=true; if(b)b.textContent='Tap again to clear';
+    setTimeout(()=>{_clearArm=false; if(b)b.textContent='Clear log';},3000); return; }
+  _clearArm=false; if(b)b.textContent='Clear log'; lsSet('dLog','[]'); renderLog();
+}
+
+/* ============ INIT ============ */
+syncToggle();
+resetTimerUI();
+</script>
+</body>
+</html>
