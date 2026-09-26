@@ -212,6 +212,7 @@
     <button class="btn primary" id="tGo" onclick="timerGo()">Start</button>
     <button class="btn ghost" onclick="timerReset()">Reset</button>
     <p class="note" id="tNote"></p>
+    <p class="note">🔊 Ringer on so you hear the beeps. The screen stays awake while a timer is running.</p>
   </div>
 </section>
 
@@ -505,11 +506,18 @@ function renderWodMoves(name){
   box.innerHTML=list.map(n=>'<a class="movechip" target="_blank" rel="noopener" href="'+moveURL(n)+'">'+n+' <span class="p">▷</span></a>').join('');
 }
 
-/* ============ BEEP ============ */
+/* ============ BEEP (one shared audio engine, unlocked on tap) ============ */
+let _actx=null;
+function initAudio(){
+  try{ if(!_actx){ const A=window.AudioContext||window.webkitAudioContext; _actx=new A(); }
+    if(_actx.state==='suspended') _actx.resume();
+  }catch(e){}
+}
 function beep(times,freq){
-  try{ const A=window.AudioContext||window.webkitAudioContext; const a=new A(); let t=a.currentTime;
-    for(let i=0;i<(times||1);i++){ const o=a.createOscillator(),g=a.createGain();
-      o.connect(g); g.connect(a.destination); o.type='square'; o.frequency.value=freq||880;
+  try{ if(!_actx){ initAudio(); } if(!_actx) return; if(_actx.state==='suspended') _actx.resume();
+    let t=_actx.currentTime;
+    for(let i=0;i<(times||1);i++){ const o=_actx.createOscillator(),g=_actx.createGain();
+      o.connect(g); g.connect(_actx.destination); o.type='square'; o.frequency.value=freq||880;
       g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.35,t+0.02);
       g.gain.exponentialRampToValueAtTime(0.0001,t+0.18); o.start(t); o.stop(t+0.2); t+=0.28; }
   }catch(e){}
@@ -517,6 +525,10 @@ function beep(times,freq){
 
 /* ============ TIMERS ============ */
 let tMode='amrap', tMin=15, tInt=null, tSecs=0, tRunning=false, tabRound=0, tabWork=true;
+let _wake=null;
+async function wakeOn(){ try{ if('wakeLock' in navigator){ _wake=await navigator.wakeLock.request('screen'); } }catch(e){} }
+async function wakeOff(){ try{ if(_wake){ await _wake.release(); _wake=null; } }catch(e){} }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && tRunning) wakeOn(); });
 const MIN_OPTS={amrap:[8,12,15,20],emom:[10,12,20,30],fortime:[]};
 function pickMode(m){ tMode=m; document.querySelectorAll('#timers .pill').forEach(p=>p.classList.toggle('sel',p.dataset.m===m)); resetTimerUI(); }
 function resetTimerUI(){
@@ -539,24 +551,25 @@ function applyTimer(cfg){ if(!cfg) return; pickMode(cfg.mode); if(cfg.min){ tMin
 function fmt(s){ s=Math.max(0,s); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
 const disp=()=>document.getElementById('tDisp');
 function setState(txt,cls){ document.getElementById('tState').textContent=txt; disp().className='clock'+(cls?' '+cls:''); }
-function timerReset(){ clearInterval(tInt); tRunning=false; tabRound=0; tabWork=true;
+function timerReset(){ clearInterval(tInt); tRunning=false; wakeOff(); tabRound=0; tabWork=true;
   document.getElementById('tGo').textContent='Start'; setState('Ready','');
   if(tMode==='fortime'){ tSecs=0; disp().textContent='00:00'; }
   else if(tMode==='tabata'){ disp().textContent='00:20'; }
   else { disp().textContent=fmt(tMin*60); }
 }
 function timerGo(){
-  if(tRunning){ clearInterval(tInt); tRunning=false; document.getElementById('tGo').textContent='Resume'; setState('Paused',''); return; }
-  tRunning=true; document.getElementById('tGo').textContent='Pause';
+  initAudio();
+  if(tRunning){ clearInterval(tInt); tRunning=false; wakeOff(); document.getElementById('tGo').textContent='Resume'; setState('Paused',''); return; }
+  tRunning=true; wakeOn(); document.getElementById('tGo').textContent='Pause';
   if(tMode==='fortime'){ setState('Working','go'); tInt=setInterval(()=>{ tSecs++; disp().textContent=fmt(tSecs); },1000); }
   else if(tMode==='amrap'){ if(disp().textContent==='00:00'||tSecs<=0) tSecs=tMin*60; else tSecs=toSecs(disp().textContent); setState('AMRAP','go');
-    tInt=setInterval(()=>{ tSecs--; disp().textContent=fmt(tSecs); if(tSecs<=3&&tSecs>0)beep(1,700); if(tSecs<=0){ clearInterval(tInt); tRunning=false; document.getElementById('tGo').textContent='Start'; setState('Time','ding'); beep(3,900);} },1000); }
+    tInt=setInterval(()=>{ tSecs--; disp().textContent=fmt(tSecs); if(tSecs<=3&&tSecs>0)beep(1,700); if(tSecs<=0){ clearInterval(tInt); tRunning=false; wakeOff(); document.getElementById('tGo').textContent='Start'; setState('Time','ding'); beep(3,900);} },1000); }
   else if(tMode==='emom'){ tSecs=toSecs(disp().textContent); if(tSecs<=0)tSecs=tMin*60; let total=tSecs; setState('EMOM','go'); beep(1,700);
-    tInt=setInterval(()=>{ tSecs--; disp().textContent=fmt(tSecs); const into=(tMin*60-tSecs); if(tSecs>0 && into%60===0) beep(1,700); if(tSecs<=0){ clearInterval(tInt); tRunning=false; document.getElementById('tGo').textContent='Start'; setState('Done','ding'); beep(3,900);} },1000); }
+    tInt=setInterval(()=>{ tSecs--; disp().textContent=fmt(tSecs); const into=(tMin*60-tSecs); if(tSecs>0 && into%60===0) beep(1,700); if(tSecs<=0){ clearInterval(tInt); tRunning=false; wakeOff(); document.getElementById('tGo').textContent='Start'; setState('Done','ding'); beep(3,900);} },1000); }
   else if(tMode==='tabata'){ tabRound=tabRound||1; tabWork=true; tSecs=20; setState('Work 1/8','go'); beep(1,900);
     tInt=setInterval(()=>{ tSecs--; disp().textContent=fmt(tSecs);
       if(tSecs<=0){ if(tabWork){ tabWork=false; tSecs=10; setState('Rest '+tabRound+'/8','rest'); beep(1,500); }
-        else { tabRound++; if(tabRound>8){ clearInterval(tInt); tRunning=false; document.getElementById('tGo').textContent='Start'; setState('Done','ding'); beep(3,900); return; }
+        else { tabRound++; if(tabRound>8){ clearInterval(tInt); tRunning=false; wakeOff(); document.getElementById('tGo').textContent='Start'; setState('Done','ding'); beep(3,900); return; }
           tabWork=true; tSecs=20; setState('Work '+tabRound+'/8','go'); beep(1,900); } } },1000); }
 }
 function toSecs(mmss){ const p=mmss.split(':'); return (+p[0])*60+(+p[1]); }
